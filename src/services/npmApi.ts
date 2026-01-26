@@ -4,6 +4,9 @@ import type { DownloadData } from "../types"
 const API_BASE =
   import.meta.env.VITE_NPM_API_BASE_URL ||
   "https://api.npmjs.org/downloads/range"
+const SEARCH_API_BASE =
+  import.meta.env.VITE_NPM_SEARCH_API_BASE_URL ||
+  "https://registry.npmjs.org/-/v1/search"
 
 // Cache Configuration
 const CACHE_EXPIRY_HOURS = 6
@@ -571,4 +574,50 @@ export async function getPackageStats(
   // This allows retrying on browser reload
 
   return stats
+}
+
+export interface PackageSearchResult {
+  name: string
+  description?: string
+}
+
+export interface PackageSearchResponse {
+  objects: Array<{
+    package: {
+      name: string
+      description?: string
+    }
+  }>
+}
+
+/**
+ * Search for NPM packages by name
+ * @param query - Search query string
+ * @param limit - Maximum number of results to return (default: 10)
+ * @returns Promise resolving to array of package search results
+ */
+export async function searchPackages(
+  query: string,
+  limit: number = 10,
+): Promise<PackageSearchResult[]> {
+  if (!query.trim()) {
+    return []
+  }
+
+  return throttledFetch(async () => {
+    const url = `${SEARCH_API_BASE}?text=${encodeURIComponent(query)}&size=${limit}`
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      // Don't throw errors for search failures, just return empty array
+      console.warn(`Failed to search packages: ${response.status}`)
+      return []
+    }
+
+    const data: PackageSearchResponse = await response.json()
+    return data.objects.map((obj) => ({
+      name: obj.package.name,
+      description: obj.package.description,
+    }))
+  })
 }

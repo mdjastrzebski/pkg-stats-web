@@ -191,7 +191,7 @@ function App() {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing || packages.length === 0}
-            className="absolute top-0 right-0 p-3 border-2 border-slate-700/50 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-purple-500/50 hover:text-purple-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
+            className="absolute top-0 right-0 p-3 border-2 border-slate-700/50 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-violet-500/50 hover:text-violet-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
             aria-label="Refresh stats"
             aria-busy={isRefreshing}
             title="Refresh stats"
@@ -215,7 +215,7 @@ function App() {
           </h1>
           <p className="text-slate-400 text-lg">
             Track download statistics for your favorite{" "}
-            <span className="text-purple-400">NPM packages</span>
+            <span className="text-violet-400">NPM packages</span>
           </p>
         </header>
 

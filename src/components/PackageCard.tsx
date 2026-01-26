@@ -38,7 +38,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             href={npmUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-purple-400 transition-colors"
+            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
           >
             {packageName}
           </a>
@@ -75,7 +75,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             href={npmUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-purple-400 transition-colors"
+            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
           >
             {packageName}
           </a>
@@ -108,13 +108,13 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-purple-500/50 hover:bg-slate-800/90 transition-all cursor-pointer">
+    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-violet-500/50 hover:bg-slate-800/90 transition-all cursor-pointer">
       <div className="flex justify-between items-start mb-4 gap-3">
         <a
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-purple-400 transition-colors"
+          className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
         >
           {packageName}
         </a>
@@ -144,7 +144,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           <p className="text-xs text-slate-400 tracking-wider mb-1">
             Downloads (last 7 days)
           </p>
-          <p className="text-5xl font-bold text-purple-400 font-mono">
+          <p className="text-5xl font-bold text-violet-400 font-mono">
             {formatNumber(currentWeekDownloads)}
           </p>
         </div>
