@@ -111,38 +111,6 @@ function getCacheKey(packageName: string): string {
 }
 
 /**
- * Get cached stats for a package if they exist and are not stale
- * Returns the cached data if valid, null if cache doesn't exist or is expired
- */
-function getCachedStats(packageName: string): CachedStats['data'] | null {
-  try {
-    const cacheKey = getCacheKey(packageName);
-    const cached = localStorage.getItem(cacheKey);
-    
-    if (!cached) {
-      return null;
-    }
-
-    const cachedStats: CachedStats = JSON.parse(cached);
-    const now = Date.now();
-    const age = now - cachedStats.timestamp;
-
-    // Check if cache is still valid (less than 6 hours old)
-    if (age < CACHE_EXPIRY_MS) {
-      return cachedStats.data;
-    }
-
-    // Cache is stale, remove it
-    localStorage.removeItem(cacheKey);
-    return null;
-  } catch (error) {
-    // If there's an error reading from localStorage, return null
-    console.warn('Error reading cache:', error);
-    return null;
-  }
-}
-
-/**
  * Get cached stats with validity information
  * Returns the cached stats object if it exists, null otherwise
  */
