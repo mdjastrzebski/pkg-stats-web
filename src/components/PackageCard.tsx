@@ -7,13 +7,28 @@ interface PackageCardProps {
 }
 
 export function PackageCard({ stats, onRemove }: PackageCardProps) {
-  const { packageName, currentWeekDownloads, changePercent, isLoading, error } =
-    stats;
+  const {
+    packageName,
+    currentWeekDownloads,
+    changePercent,
+    monthChangePercent,
+    yearChangePercent,
+    isLoading,
+    error,
+  } = stats;
 
-  const isPositive = changePercent >= 0;
-  const changeColor = isPositive
-    ? 'text-green-600 dark:text-green-400'
-    : 'text-red-600 dark:text-red-400';
+  const getChangeColor = (percent: number | null): string => {
+    if (percent === null) {
+      return 'text-gray-600 dark:text-gray-400';
+    }
+    return percent >= 0
+      ? 'text-green-600 dark:text-green-400'
+      : 'text-red-600 dark:text-red-400';
+  };
+
+  const changeColor = getChangeColor(changePercent);
+  const monthChangeColor = getChangeColor(monthChangePercent);
+  const yearChangeColor = getChangeColor(yearChangePercent);
 
   if (error) {
     return (
@@ -119,13 +134,33 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           </p>
         </div>
 
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Week over week change
-          </p>
-          <p className={`text-lg font-semibold ${changeColor}`}>
-            {formatChangePercent(changePercent)}
-          </p>
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Week over week change
+            </p>
+            <p className={`text-lg font-semibold ${changeColor}`}>
+              {formatChangePercent(changePercent)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Month over month change
+            </p>
+            <p className={`text-lg font-semibold ${monthChangeColor}`}>
+              {formatChangePercent(monthChangePercent)}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Year over year change
+            </p>
+            <p className={`text-lg font-semibold ${yearChangeColor}`}>
+              {formatChangePercent(yearChangePercent)}
+            </p>
+          </div>
         </div>
       </div>
     </div>

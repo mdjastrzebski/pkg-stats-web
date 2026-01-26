@@ -6,8 +6,12 @@ const CACHE_PREFIX = 'npm_stats_cache_';
 
 interface CachedStats {
   data: {
-    currentWeekDownloads: number;
-    previousWeekDownloads: number;
+    currentWeekDownloads: number | null;
+    previousWeekDownloads: number | null;
+    currentMonthDownloads: number | null;
+    previousMonthDownloads: number | null;
+    currentYearDownloads: number | null;
+    previousYearDownloads: number | null;
   };
   timestamp: number;
 }
@@ -34,6 +38,64 @@ function getPrevious7DaysRange(): { start: string; end: string } {
   end.setDate(end.getDate() - 7); // 7 days ago
   const start = new Date(end);
   start.setDate(start.getDate() - 6); // 6 days before that (7 days total)
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0],
+  };
+}
+
+/**
+ * Get the date range for the last 30 days
+ */
+function getLast30DaysRange(): { start: string; end: string } {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 29); // Last 30 days including today
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0],
+  };
+}
+
+/**
+ * Get the date range for the previous 30 days
+ */
+function getPrevious30DaysRange(): { start: string; end: string } {
+  const end = new Date();
+  end.setDate(end.getDate() - 30); // 30 days ago
+  const start = new Date(end);
+  start.setDate(start.getDate() - 29); // 29 days before that (30 days total)
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0],
+  };
+}
+
+/**
+ * Get the date range for the last 365 days
+ */
+function getLast365DaysRange(): { start: string; end: string } {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 364); // Last 365 days including today
+
+  return {
+    start: start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0],
+  };
+}
+
+/**
+ * Get the date range for the previous 365 days
+ */
+function getPrevious365DaysRange(): { start: string; end: string } {
+  const end = new Date();
+  end.setDate(end.getDate() - 365); // 365 days ago
+  const start = new Date(end);
+  start.setDate(start.getDate() - 364); // 364 days before that (365 days total)
 
   return {
     start: start.toISOString().split('T')[0],
@@ -122,13 +184,74 @@ async function fetchDownloads(
 }
 
 /**
+ * Clear cache for a specific package
+ */
+export function clearPackageCache(packageName: string): void {
+  try {
+    const cacheKey = getCacheKey(packageName);
+    localStorage.removeItem(cacheKey);
+  } catch (error) {
+    console.warn('Error clearing cache:', error);
+  }
+}
+
+/**
+ * Clear cache for all packages
+ */
+export function clearAllCache(): void {
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (key.startsWith(CACHE_PREFIX)) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (error) {
+    console.warn('Error clearing all cache:', error);
+  }
+}
+
+/**
+ * Safely fetch downloads for a date range, returning null on error
+ */
+async function fetchDownloadsSafely(
+  packageName: string,
+  start: string,
+  end: string
+): Promise<number | null> {
+  try {
+    const data = await fetchDownloads(packageName, start, end);
+    return data.downloads.reduce((sum, day) => sum + day.downloads, 0);
+  } catch (error) {
+    console.warn(
+      `Failed to fetch downloads for ${packageName} from ${start} to ${end}:`,
+      error
+    );
+    return null;
+  }
+}
+
+/**
  * Fetch download statistics for a package for the last 7 days and previous 7 days
  * Uses localStorage cache with 6-hour expiration
+ * @param forceRefresh - If true, bypasses cache and fetches fresh data
  */
-export async function getPackageStats(packageName: string): Promise<{
-  currentWeekDownloads: number;
-  previousWeekDownloads: number;
+export async function getPackageStats(
+  packageName: string,
+  forceRefresh: boolean = false
+): Promise<{
+  currentWeekDownloads: number | null;
+  previousWeekDownloads: number | null;
+  currentMonthDownloads: number | null;
+  previousMonthDownloads: number | null;
+  currentYearDownloads: number | null;
+  previousYearDownloads: number | null;
 }> {
+  // Clear cache if force refresh is requested
+  if (forceRefresh) {
+    clearPackageCache(packageName);
+  }
+
   // Check cache first
   const cachedStats = getCachedStats(packageName);
   if (cachedStats) {
@@ -136,32 +259,73 @@ export async function getPackageStats(packageName: string): Promise<{
   }
 
   // Cache miss or stale, fetch fresh data
-  const [currentRange, previousRange] = [
+  const [
+    currentWeekRange,
+    previousWeekRange,
+    currentMonthRange,
+    previousMonthRange,
+    currentYearRange,
+    previousYearRange,
+  ] = [
     getLast7DaysRange(),
     getPrevious7DaysRange(),
+    getLast30DaysRange(),
+    getPrevious30DaysRange(),
+    getLast365DaysRange(),
+    getPrevious365DaysRange(),
   ];
 
-  const [currentData, previousData] = await Promise.all([
-    fetchDownloads(packageName, currentRange.start, currentRange.end),
-    fetchDownloads(packageName, previousRange.start, previousRange.end),
+  // Fetch all stats independently, allowing individual failures
+  const [
+    currentWeekDownloads,
+    previousWeekDownloads,
+    currentMonthDownloads,
+    previousMonthDownloads,
+    currentYearDownloads,
+    previousYearDownloads,
+  ] = await Promise.all([
+    fetchDownloadsSafely(
+      packageName,
+      currentWeekRange.start,
+      currentWeekRange.end
+    ),
+    fetchDownloadsSafely(
+      packageName,
+      previousWeekRange.start,
+      previousWeekRange.end
+    ),
+    fetchDownloadsSafely(
+      packageName,
+      currentMonthRange.start,
+      currentMonthRange.end
+    ),
+    fetchDownloadsSafely(
+      packageName,
+      previousMonthRange.start,
+      previousMonthRange.end
+    ),
+    fetchDownloadsSafely(
+      packageName,
+      currentYearRange.start,
+      currentYearRange.end
+    ),
+    fetchDownloadsSafely(
+      packageName,
+      previousYearRange.start,
+      previousYearRange.end
+    ),
   ]);
-
-  const currentWeekDownloads = currentData.downloads.reduce(
-    (sum, day) => sum + day.downloads,
-    0
-  );
-
-  const previousWeekDownloads = previousData.downloads.reduce(
-    (sum, day) => sum + day.downloads,
-    0
-  );
 
   const stats = {
     currentWeekDownloads,
     previousWeekDownloads,
+    currentMonthDownloads,
+    previousMonthDownloads,
+    currentYearDownloads,
+    previousYearDownloads,
   };
 
-  // Cache the fresh data
+  // Cache the fresh data (even if some stats are null)
   setCachedStats(packageName, stats);
 
   return stats;
