@@ -112,6 +112,7 @@ function getCacheKey(packageName: string): string {
 
 /**
  * Get cached stats for a package if they exist and are not stale
+ * Returns the cached data if valid, null if cache doesn't exist or is expired
  */
 function getCachedStats(packageName: string): CachedStats['data'] | null {
   try {
@@ -142,17 +143,43 @@ function getCachedStats(packageName: string): CachedStats['data'] | null {
 }
 
 /**
- * Store stats in cache with current timestamp
+ * Get cached stats with validity information
+ * Returns the cached stats object if it exists, null otherwise
+ */
+function getCachedStatsWithValidity(packageName: string): CachedStats | null {
+  try {
+    const cacheKey = getCacheKey(packageName);
+    const cached = localStorage.getItem(cacheKey);
+    
+    if (!cached) {
+      return null;
+    }
+
+    const cachedStats: CachedStats = JSON.parse(cached);
+    return cachedStats;
+  } catch (error) {
+    // If there's an error reading from localStorage, return null
+    console.warn('Error reading cache:', error);
+    return null;
+  }
+}
+
+/**
+ * Store stats in cache with timestamp
+ * @param packageName - Package name
+ * @param data - Stats data to cache
+ * @param timestamp - Optional timestamp. If not provided, uses current time
  */
 function setCachedStats(
   packageName: string,
-  data: CachedStats['data']
+  data: CachedStats['data'],
+  timestamp?: number
 ): void {
   try {
     const cacheKey = getCacheKey(packageName);
     const cachedStats: CachedStats = {
       data,
-      timestamp: Date.now(),
+      timestamp: timestamp ?? Date.now(),
     };
     localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
   } catch (error) {
@@ -252,13 +279,7 @@ export async function getPackageStats(
     clearPackageCache(packageName);
   }
 
-  // Check cache first
-  const cachedStats = getCachedStats(packageName);
-  if (cachedStats) {
-    return cachedStats;
-  }
-
-  // Cache miss or stale, fetch fresh data
+  // Get date ranges
   const [
     currentWeekRange,
     previousWeekRange,
@@ -275,7 +296,115 @@ export async function getPackageStats(
     getPrevious365DaysRange(),
   ];
 
-  // Fetch all stats independently, allowing individual failures
+  // Check cache first
+  const cachedStatsObj = getCachedStatsWithValidity(packageName);
+  const now = Date.now();
+  const isCacheValid = cachedStatsObj && (now - cachedStatsObj.timestamp) < CACHE_EXPIRY_MS;
+  const cachedStats = cachedStatsObj?.data;
+  
+  // Check if there are any missing entries (null values) in cached data
+  const hasMissingEntries = cachedStats && [
+    cachedStats.currentWeekDownloads,
+    cachedStats.previousWeekDownloads,
+    cachedStats.currentMonthDownloads,
+    cachedStats.previousMonthDownloads,
+    cachedStats.currentYearDownloads,
+    cachedStats.previousYearDownloads,
+  ].some((value) => value === null);
+  
+  // If cache exists, is valid, has no missing entries, and force refresh is not requested,
+  // return it as-is
+  if (isCacheValid && !hasMissingEntries && !forceRefresh && cachedStatsObj) {
+    return cachedStatsObj.data;
+  }
+
+  // If we have cached data (valid or expired) with missing entries, retry only missing entries
+  // This ensures we fill in gaps even if cache is still valid
+  if (cachedStats && !forceRefresh) {
+    // Keep non-null values, retry only null values
+    const fetchPromises = [
+      cachedStats.currentWeekDownloads !== null
+        ? Promise.resolve(cachedStats.currentWeekDownloads)
+        : fetchDownloadsSafely(
+            packageName,
+            currentWeekRange.start,
+            currentWeekRange.end
+          ),
+      cachedStats.previousWeekDownloads !== null
+        ? Promise.resolve(cachedStats.previousWeekDownloads)
+        : fetchDownloadsSafely(
+            packageName,
+            previousWeekRange.start,
+            previousWeekRange.end
+          ),
+      cachedStats.currentMonthDownloads !== null
+        ? Promise.resolve(cachedStats.currentMonthDownloads)
+        : fetchDownloadsSafely(
+            packageName,
+            currentMonthRange.start,
+            currentMonthRange.end
+          ),
+      cachedStats.previousMonthDownloads !== null
+        ? Promise.resolve(cachedStats.previousMonthDownloads)
+        : fetchDownloadsSafely(
+            packageName,
+            previousMonthRange.start,
+            previousMonthRange.end
+          ),
+      cachedStats.currentYearDownloads !== null
+        ? Promise.resolve(cachedStats.currentYearDownloads)
+        : fetchDownloadsSafely(
+            packageName,
+            currentYearRange.start,
+            currentYearRange.end
+          ),
+      cachedStats.previousYearDownloads !== null
+        ? Promise.resolve(cachedStats.previousYearDownloads)
+        : fetchDownloadsSafely(
+            packageName,
+            previousYearRange.start,
+            previousYearRange.end
+          ),
+    ];
+
+    const [
+      currentWeekDownloads,
+      previousWeekDownloads,
+      currentMonthDownloads,
+      previousMonthDownloads,
+      currentYearDownloads,
+      previousYearDownloads,
+    ] = await Promise.all(fetchPromises);
+
+    const stats = {
+      currentWeekDownloads,
+      previousWeekDownloads,
+      currentMonthDownloads,
+      previousMonthDownloads,
+      currentYearDownloads,
+      previousYearDownloads,
+    };
+
+    // Update cache with merged results (retry results for previously failed fetches)
+    // Preserve the original timestamp since we're only filling missing data
+    const hasAnySuccess = [
+      currentWeekDownloads,
+      previousWeekDownloads,
+      currentMonthDownloads,
+      previousMonthDownloads,
+      currentYearDownloads,
+      previousYearDownloads,
+    ].some((value) => value !== null);
+
+    if (hasAnySuccess && cachedStatsObj) {
+      // Preserve original timestamp when only fetching missing data
+      setCachedStats(packageName, stats, cachedStatsObj.timestamp);
+    }
+
+    return stats;
+  }
+
+  // Cache miss or stale, fetch fresh data for all stats
   const [
     currentWeekDownloads,
     previousWeekDownloads,
@@ -325,8 +454,23 @@ export async function getPackageStats(
     previousYearDownloads,
   };
 
-  // Cache the fresh data (even if some stats are null)
-  setCachedStats(packageName, stats);
+  // Only cache if at least one stat succeeded (not all null)
+  // This allows retrying failed fetches on browser reload
+  const hasAnySuccess = [
+    currentWeekDownloads,
+    previousWeekDownloads,
+    currentMonthDownloads,
+    previousMonthDownloads,
+    currentYearDownloads,
+    previousYearDownloads,
+  ].some((value) => value !== null);
+
+  if (hasAnySuccess) {
+    // Cache the fresh data (even if some stats are null)
+    setCachedStats(packageName, stats);
+  }
+  // If all stats are null (all fetches failed), don't cache
+  // This allows retrying on browser reload
 
   return stats;
 }

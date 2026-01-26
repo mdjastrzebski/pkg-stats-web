@@ -1,6 +1,6 @@
 /**
  * Calculate the percentage change between two values
- * Returns null if either value is null
+ * Returns null if either value is null or if previous period is 0
  */
 export function calculateChangePercent(
   current: number | null,
@@ -10,7 +10,7 @@ export function calculateChangePercent(
     return null;
   }
   if (previous === 0) {
-    return current > 0 ? 100 : 0;
+    return null;
   }
   return ((current - previous) / previous) * 100;
 }
