@@ -171,7 +171,7 @@ function App() {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing || packages.length === 0}
-            className="absolute top-0 right-0 p-3 border-4 border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:border-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
+            className="absolute top-0 right-0 p-3 border-2 border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:border-emerald-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
             aria-label="Refresh stats"
             title="Refresh stats"
           >
@@ -193,7 +193,7 @@ function App() {
             NPM Package Stats
           </h1>
           <p className="text-slate-400 text-lg">
-            Track download statistics for your favorite NPM packages
+            Track download statistics for your favorite <span className="text-emerald-300">NPM packages</span>
           </p>
         </header>
 

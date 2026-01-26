@@ -22,7 +22,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
       return 'text-slate-400';
     }
     return percent >= 0
-      ? 'text-emerald-400'
+      ? 'text-emerald-300'
       : 'text-rose-400';
   };
 
@@ -32,7 +32,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 
   if (error) {
     return (
-      <div className="bg-slate-900 border-4 border-rose-500 p-6 rounded-lg">
+      <div className="bg-slate-900 border-2 border-rose-500 p-6 rounded-lg">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
             {packageName}
@@ -64,7 +64,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-slate-900 border-4 border-slate-700 p-6 rounded-lg">
+      <div className="bg-slate-900 border-2 border-slate-700 p-6 rounded-lg">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
             {packageName}
@@ -98,7 +98,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
   }
 
   return (
-    <div className="bg-slate-900 border-4 border-slate-700 p-6 hover:border-emerald-500 transition-all rounded-lg">
+    <div className="bg-slate-900 border-2 border-slate-700 p-6 hover:border-emerald-300 transition-all rounded-lg">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
           {packageName}
@@ -129,12 +129,12 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           <p className="text-xs text-slate-400 tracking-wider mb-1">
             Downloads (last 7 days)
           </p>
-          <p className="text-4xl font-bold text-slate-100 font-mono">
+          <p className="text-4xl font-bold text-emerald-200 font-mono">
             {formatNumber(currentWeekDownloads)}
           </p>
         </div>
 
-        <div className="pt-3 border-t-4 border-slate-700">
+        <div className="pt-3 border-t-2 border-slate-700">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <div>
               <p className="text-xs text-slate-400 tracking-wider mb-1">
