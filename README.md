@@ -2,6 +2,8 @@
 
 A simple web application to track download statistics for your favorite NPM packages. View weekly, monthly, and yearly download trends with percentage changes.
 
+[pkg-stats.netlify.app](https://pkg-stats.netlify.app/)
+
 ## Features
 
 - 📊 **Download Statistics**: Track downloads for week, month, and year periods
