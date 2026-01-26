@@ -1,158 +1,176 @@
-import type { DownloadData } from '../types';
+import type { DownloadData } from "../types"
 
-const API_BASE = 'https://api.npmjs.org/downloads/range';
-const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
-const CACHE_PREFIX = 'npm_stats_cache_';
+// API Configuration
+const API_BASE =
+  import.meta.env.VITE_NPM_API_BASE_URL ||
+  "https://api.npmjs.org/downloads/range"
 
-// Rate limiting configuration
-const MAX_CONCURRENT_REQUESTS = 6; // Limit concurrent API requests
-const REQUEST_DELAY_MS = 100; // Delay between request batches (ms)
+// Cache Configuration
+const CACHE_EXPIRY_HOURS = 6
+const CACHE_EXPIRY_MS = CACHE_EXPIRY_HOURS * 60 * 60 * 1000 // 6 hours in milliseconds
+const CACHE_PREFIX = "npm_stats_cache_"
+const CACHE_CLEANUP_PERCENTAGE = 0.5 // Remove 50% of oldest entries when quota exceeded
+
+// Rate Limiting Configuration
+const MAX_CONCURRENT_REQUESTS = 6 // Limit concurrent API requests
+const REQUEST_DELAY_MS = 100 // Delay between request batches (ms)
+
+// Date Range Constants
+const DAYS_PER_WEEK = 7
+const DAYS_PER_MONTH = 30
+const DAYS_PER_YEAR = 365
+const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1 // 6 days ago for 7-day range
+const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1 // 29 days ago for 30-day range
+const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1 // 364 days ago for 365-day range
 
 // Request queue management
-let activeRequests = 0;
-const requestQueue: Array<() => Promise<void>> = [];
+let activeRequests = 0
+const requestQueue: Array<() => Promise<void>> = []
+
+export interface DateRange {
+  start: string
+  end: string
+}
 
 /**
  * Throttle API requests to avoid overwhelming the NPM API
  */
-async function throttledFetch<T>(
-  fn: () => Promise<T>
-): Promise<T> {
+async function throttledFetch<T>(fn: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     const executeRequest = async () => {
-      activeRequests++;
+      activeRequests++
       try {
-        const result = await fn();
-        resolve(result);
+        const result = await fn()
+        resolve(result)
       } catch (error) {
-        reject(error);
+        reject(error)
       } finally {
-        activeRequests--;
+        activeRequests--
         // Process next request in queue
         if (requestQueue.length > 0) {
-          const nextRequest = requestQueue.shift();
+          const nextRequest = requestQueue.shift()
           if (nextRequest) {
             // Add small delay between batches
             setTimeout(() => {
-              nextRequest();
-            }, REQUEST_DELAY_MS);
+              nextRequest()
+            }, REQUEST_DELAY_MS)
           }
         }
       }
-    };
+    }
 
     if (activeRequests < MAX_CONCURRENT_REQUESTS) {
-      executeRequest();
+      executeRequest()
     } else {
-      requestQueue.push(executeRequest);
+      requestQueue.push(executeRequest)
     }
-  });
+  })
 }
 
 interface CachedStats {
   data: {
-    currentWeekDownloads: number | null;
-    previousWeekDownloads: number | null;
-    currentMonthDownloads: number | null;
-    previousMonthDownloads: number | null;
-    currentYearDownloads: number | null;
-    previousYearDownloads: number | null;
-  };
-  timestamp: number;
+    currentWeekDownloads: number | null
+    previousWeekDownloads: number | null
+    currentMonthDownloads: number | null
+    previousMonthDownloads: number | null
+    currentYearDownloads: number | null
+    previousYearDownloads: number | null
+  }
+  timestamp: number
 }
 
 /**
  * Get the date range for the last 7 days
  */
-function getLast7DaysRange(): { start: string; end: string } {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 6); // Last 7 days including today
+function getLast7DaysRange(): DateRange {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // Last 7 days including today
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
-  };
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  }
 }
 
 /**
  * Get the date range for the previous 7 days
  */
-function getPrevious7DaysRange(): { start: string; end: string } {
-  const end = new Date();
-  end.setDate(end.getDate() - 7); // 7 days ago
-  const start = new Date(end);
-  start.setDate(start.getDate() - 6); // 6 days before that (7 days total)
+function getPrevious7DaysRange(): DateRange {
+  const end = new Date()
+  end.setDate(end.getDate() - DAYS_PER_WEEK) // 7 days ago
+  const start = new Date(end)
+  start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // 6 days before that (7 days total)
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
-  };
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  }
 }
 
 /**
  * Get the date range for the last 30 days
  */
-function getLast30DaysRange(): { start: string; end: string } {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 29); // Last 30 days including today
+function getLast30DaysRange(): DateRange {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // Last 30 days including today
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
-  };
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  }
 }
 
 /**
  * Get the date range for the previous 30 days
  */
-function getPrevious30DaysRange(): { start: string; end: string } {
-  const end = new Date();
-  end.setDate(end.getDate() - 30); // 30 days ago
-  const start = new Date(end);
-  start.setDate(start.getDate() - 29); // 29 days before that (30 days total)
+function getPrevious30DaysRange(): DateRange {
+  const end = new Date()
+  end.setDate(end.getDate() - DAYS_PER_MONTH) // 30 days ago
+  const start = new Date(end)
+  start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // 29 days before that (30 days total)
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
-  };
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  }
 }
 
 /**
  * Get the date range for the last 365 days
  */
-function getLast365DaysRange(): { start: string; end: string } {
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - 364); // Last 365 days including today
+function getLast365DaysRange(): DateRange {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // Last 365 days including today
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
-  };
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  }
 }
 
 /**
  * Get the date range for the previous 365 days
  */
-function getPrevious365DaysRange(): { start: string; end: string } {
-  const end = new Date();
-  end.setDate(end.getDate() - 365); // 365 days ago
-  const start = new Date(end);
-  start.setDate(start.getDate() - 364); // 364 days before that (365 days total)
+function getPrevious365DaysRange(): DateRange {
+  const end = new Date()
+  end.setDate(end.getDate() - DAYS_PER_YEAR) // 365 days ago
+  const start = new Date(end)
+  start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // 364 days before that (365 days total)
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
-  };
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  }
 }
 
 /**
  * Get cache key for a package name
  */
 function getCacheKey(packageName: string): string {
-  return `${CACHE_PREFIX}${packageName}`;
+  return `${CACHE_PREFIX}${packageName}`
 }
 
 /**
@@ -161,19 +179,19 @@ function getCacheKey(packageName: string): string {
  */
 function getCachedStatsWithValidity(packageName: string): CachedStats | null {
   try {
-    const cacheKey = getCacheKey(packageName);
-    const cached = localStorage.getItem(cacheKey);
-    
+    const cacheKey = getCacheKey(packageName)
+    const cached = localStorage.getItem(cacheKey)
+
     if (!cached) {
-      return null;
+      return null
     }
 
-    const cachedStats: CachedStats = JSON.parse(cached);
-    return cachedStats;
+    const cachedStats: CachedStats = JSON.parse(cached)
+    return cachedStats
   } catch (error) {
     // If there's an error reading from localStorage, return null
-    console.warn('Error reading cache:', error);
-    return null;
+    console.warn("Error reading cache:", error)
+    return null
   }
 }
 
@@ -185,57 +203,60 @@ function getCachedStatsWithValidity(packageName: string): CachedStats | null {
  */
 function setCachedStats(
   packageName: string,
-  data: CachedStats['data'],
-  timestamp?: number
+  data: CachedStats["data"],
+  timestamp?: number,
 ): void {
+  const cacheKey = getCacheKey(packageName)
+  const cachedStats: CachedStats = {
+    data,
+    timestamp: timestamp ?? Date.now(),
+  }
+
   try {
-    const cacheKey = getCacheKey(packageName);
-    const cachedStats: CachedStats = {
-      data,
-      timestamp: timestamp ?? Date.now(),
-    };
-    localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
+    localStorage.setItem(cacheKey, JSON.stringify(cachedStats))
   } catch (error) {
     // Handle quota exceeded error specifically
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.warn('LocalStorage quota exceeded. Clearing old cache entries...');
+    if (error instanceof DOMException && error.name === "QuotaExceededError") {
+      console.warn("LocalStorage quota exceeded. Clearing old cache entries...")
       // Try to clear some old cache entries
       try {
-        const keys = Object.keys(localStorage);
-        const cacheKeys = keys.filter((key) => key.startsWith(CACHE_PREFIX));
+        const keys = Object.keys(localStorage)
+        const cacheKeys = keys.filter((key) => key.startsWith(CACHE_PREFIX))
         // Remove oldest 50% of cache entries
-        const entries = cacheKeys.map((key) => {
-          try {
-            const cached = localStorage.getItem(key);
-            if (cached) {
-              const parsed: CachedStats = JSON.parse(cached);
-              return { key, timestamp: parsed.timestamp };
+        const entries = cacheKeys
+          .map((key) => {
+            try {
+              const cached = localStorage.getItem(key)
+              if (cached) {
+                const parsed: CachedStats = JSON.parse(cached)
+                return { key, timestamp: parsed.timestamp }
+              }
+            } catch {
+              return null
             }
-          } catch {
-            return null;
-          }
-          return null;
-        }).filter((entry): entry is { key: string; timestamp: number } => entry !== null);
-        
-        entries.sort((a, b) => a.timestamp - b.timestamp);
-        const toRemove = Math.ceil(entries.length / 2);
+            return null
+          })
+          .filter((entry) => entry !== null)
+
+        entries.sort((a, b) => a.timestamp - b.timestamp)
+        const toRemove = Math.ceil(entries.length * CACHE_CLEANUP_PERCENTAGE)
         entries.slice(0, toRemove).forEach((entry) => {
-          localStorage.removeItem(entry.key);
-        });
-        
+          localStorage.removeItem(entry.key)
+        })
+
         // Retry setting the cache
         try {
-          localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
+          localStorage.setItem(cacheKey, JSON.stringify(cachedStats))
         } catch (retryError) {
-          console.warn('Failed to cache after cleanup:', retryError);
+          console.warn("Failed to cache after cleanup:", retryError)
         }
       } catch (cleanupError) {
-        console.warn('Failed to cleanup cache:', cleanupError);
+        console.warn("Failed to cleanup cache:", cleanupError)
       }
     } else {
       // If there's another error writing to localStorage, just log it
       // Don't fail the request if caching fails
-      console.warn('Error writing to cache:', error);
+      console.warn("Error writing to cache:", error)
     }
   }
 }
@@ -247,24 +268,38 @@ function setCachedStats(
 async function fetchDownloads(
   packageName: string,
   start: string,
-  end: string
+  end: string,
 ): Promise<DownloadData> {
   return throttledFetch(async () => {
-    const url = `${API_BASE}/${start}:${end}/${packageName}`;
-    const response = await fetch(url);
+    const url = `${API_BASE}/${start}:${end}/${packageName}`
+    const response = await fetch(url)
 
     if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error(`Package "${packageName}" not found`);
+      const status = response.status
+      const statusText = response.statusText
+
+      if (status === 404) {
+        throw new Error(
+          `Package "${packageName}" not found. Please check the package name and try again.`,
+        )
       }
-      if (response.status === 429) {
-        throw new Error(`Rate limit exceeded. Please try again later.`);
+      if (status === 429) {
+        throw new Error(
+          `Rate limit exceeded (HTTP ${status}). The NPM API has rate limits. Please wait a moment and try again.`,
+        )
       }
-      throw new Error(`Failed to fetch stats for "${packageName}" (${response.status})`);
+      if (status >= 500) {
+        throw new Error(
+          `NPM API server error (HTTP ${status} ${statusText}). The service may be temporarily unavailable. Please try again later.`,
+        )
+      }
+      throw new Error(
+        `Failed to fetch download statistics for "${packageName}" (HTTP ${status} ${statusText}). Please try again later.`,
+      )
     }
 
-    return response.json();
-  });
+    return response.json()
+  })
 }
 
 /**
@@ -272,10 +307,10 @@ async function fetchDownloads(
  */
 export function clearPackageCache(packageName: string): void {
   try {
-    const cacheKey = getCacheKey(packageName);
-    localStorage.removeItem(cacheKey);
+    const cacheKey = getCacheKey(packageName)
+    localStorage.removeItem(cacheKey)
   } catch (error) {
-    console.warn('Error clearing cache:', error);
+    console.warn("Error clearing cache:", error)
   }
 }
 
@@ -284,14 +319,14 @@ export function clearPackageCache(packageName: string): void {
  */
 export function clearAllCache(): void {
   try {
-    const keys = Object.keys(localStorage);
+    const keys = Object.keys(localStorage)
     keys.forEach((key) => {
       if (key.startsWith(CACHE_PREFIX)) {
-        localStorage.removeItem(key);
+        localStorage.removeItem(key)
       }
-    });
+    })
   } catch (error) {
-    console.warn('Error clearing all cache:', error);
+    console.warn("Error clearing all cache:", error)
   }
 }
 
@@ -301,39 +336,42 @@ export function clearAllCache(): void {
 async function fetchDownloadsSafely(
   packageName: string,
   start: string,
-  end: string
+  end: string,
 ): Promise<number | null> {
   try {
-    const data = await fetchDownloads(packageName, start, end);
-    return data.downloads.reduce((sum, day) => sum + day.downloads, 0);
+    const data = await fetchDownloads(packageName, start, end)
+    return data.downloads.reduce((sum, day) => sum + day.downloads, 0)
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error"
     console.warn(
-      `Failed to fetch downloads for ${packageName} from ${start} to ${end}:`,
-      error
-    );
-    return null;
+      `Failed to fetch downloads for "${packageName}" (${start} to ${end}): ${errorMessage}`,
+    )
+    return null
   }
 }
 
 /**
- * Fetch download statistics for a package for the last 7 days and previous 7 days
- * Uses localStorage cache with 6-hour expiration
+ * Fetch download statistics for a package for week, month, and year periods
+ * Uses localStorage cache with configurable expiration (default: 6 hours)
+ * @param packageName - The NPM package name to fetch stats for
  * @param forceRefresh - If true, bypasses cache and fetches fresh data
+ * @returns Promise resolving to download statistics for all periods
  */
 export async function getPackageStats(
   packageName: string,
-  forceRefresh: boolean = false
+  forceRefresh: boolean = false,
 ): Promise<{
-  currentWeekDownloads: number | null;
-  previousWeekDownloads: number | null;
-  currentMonthDownloads: number | null;
-  previousMonthDownloads: number | null;
-  currentYearDownloads: number | null;
-  previousYearDownloads: number | null;
+  currentWeekDownloads: number | null
+  previousWeekDownloads: number | null
+  currentMonthDownloads: number | null
+  previousMonthDownloads: number | null
+  currentYearDownloads: number | null
+  previousYearDownloads: number | null
 }> {
   // Clear cache if force refresh is requested
   if (forceRefresh) {
-    clearPackageCache(packageName);
+    clearPackageCache(packageName)
   }
 
   // Get date ranges
@@ -351,28 +389,31 @@ export async function getPackageStats(
     getPrevious30DaysRange(),
     getLast365DaysRange(),
     getPrevious365DaysRange(),
-  ];
+  ]
 
   // Check cache first
-  const cachedStatsObj = getCachedStatsWithValidity(packageName);
-  const now = Date.now();
-  const isCacheValid = cachedStatsObj && (now - cachedStatsObj.timestamp) < CACHE_EXPIRY_MS;
-  const cachedStats = cachedStatsObj?.data;
-  
+  const cachedStatsObj = getCachedStatsWithValidity(packageName)
+  const now = Date.now()
+  const isCacheValid =
+    cachedStatsObj && now - cachedStatsObj.timestamp < CACHE_EXPIRY_MS
+  const cachedStats = cachedStatsObj?.data
+
   // Check if there are any missing entries (null values) in cached data
-  const hasMissingEntries = cachedStats && [
-    cachedStats.currentWeekDownloads,
-    cachedStats.previousWeekDownloads,
-    cachedStats.currentMonthDownloads,
-    cachedStats.previousMonthDownloads,
-    cachedStats.currentYearDownloads,
-    cachedStats.previousYearDownloads,
-  ].some((value) => value === null);
-  
+  const hasMissingEntries =
+    cachedStats &&
+    [
+      cachedStats.currentWeekDownloads,
+      cachedStats.previousWeekDownloads,
+      cachedStats.currentMonthDownloads,
+      cachedStats.previousMonthDownloads,
+      cachedStats.currentYearDownloads,
+      cachedStats.previousYearDownloads,
+    ].some((value) => value === null)
+
   // If cache exists, is valid, has no missing entries, and force refresh is not requested,
   // return it as-is
   if (isCacheValid && !hasMissingEntries && !forceRefresh && cachedStatsObj) {
-    return cachedStatsObj.data;
+    return cachedStatsObj.data
   }
 
   // If we have cached data (valid or expired) with missing entries, retry only missing entries
@@ -385,44 +426,44 @@ export async function getPackageStats(
         : fetchDownloadsSafely(
             packageName,
             currentWeekRange.start,
-            currentWeekRange.end
+            currentWeekRange.end,
           ),
       cachedStats.previousWeekDownloads !== null
         ? Promise.resolve(cachedStats.previousWeekDownloads)
         : fetchDownloadsSafely(
             packageName,
             previousWeekRange.start,
-            previousWeekRange.end
+            previousWeekRange.end,
           ),
       cachedStats.currentMonthDownloads !== null
         ? Promise.resolve(cachedStats.currentMonthDownloads)
         : fetchDownloadsSafely(
             packageName,
             currentMonthRange.start,
-            currentMonthRange.end
+            currentMonthRange.end,
           ),
       cachedStats.previousMonthDownloads !== null
         ? Promise.resolve(cachedStats.previousMonthDownloads)
         : fetchDownloadsSafely(
             packageName,
             previousMonthRange.start,
-            previousMonthRange.end
+            previousMonthRange.end,
           ),
       cachedStats.currentYearDownloads !== null
         ? Promise.resolve(cachedStats.currentYearDownloads)
         : fetchDownloadsSafely(
             packageName,
             currentYearRange.start,
-            currentYearRange.end
+            currentYearRange.end,
           ),
       cachedStats.previousYearDownloads !== null
         ? Promise.resolve(cachedStats.previousYearDownloads)
         : fetchDownloadsSafely(
             packageName,
             previousYearRange.start,
-            previousYearRange.end
+            previousYearRange.end,
           ),
-    ];
+    ]
 
     const [
       currentWeekDownloads,
@@ -431,7 +472,7 @@ export async function getPackageStats(
       previousMonthDownloads,
       currentYearDownloads,
       previousYearDownloads,
-    ] = await Promise.all(fetchPromises);
+    ] = await Promise.all(fetchPromises)
 
     const stats = {
       currentWeekDownloads,
@@ -440,7 +481,7 @@ export async function getPackageStats(
       previousMonthDownloads,
       currentYearDownloads,
       previousYearDownloads,
-    };
+    }
 
     // Update cache with merged results (retry results for previously failed fetches)
     // Preserve the original timestamp since we're only filling missing data
@@ -451,14 +492,14 @@ export async function getPackageStats(
       previousMonthDownloads,
       currentYearDownloads,
       previousYearDownloads,
-    ].some((value) => value !== null);
+    ].some((value) => value !== null)
 
     if (hasAnySuccess && cachedStatsObj) {
       // Preserve original timestamp when only fetching missing data
-      setCachedStats(packageName, stats, cachedStatsObj.timestamp);
+      setCachedStats(packageName, stats, cachedStatsObj.timestamp)
     }
 
-    return stats;
+    return stats
   }
 
   // Cache miss or stale, fetch fresh data for all stats
@@ -473,34 +514,34 @@ export async function getPackageStats(
     fetchDownloadsSafely(
       packageName,
       currentWeekRange.start,
-      currentWeekRange.end
+      currentWeekRange.end,
     ),
     fetchDownloadsSafely(
       packageName,
       previousWeekRange.start,
-      previousWeekRange.end
+      previousWeekRange.end,
     ),
     fetchDownloadsSafely(
       packageName,
       currentMonthRange.start,
-      currentMonthRange.end
+      currentMonthRange.end,
     ),
     fetchDownloadsSafely(
       packageName,
       previousMonthRange.start,
-      previousMonthRange.end
+      previousMonthRange.end,
     ),
     fetchDownloadsSafely(
       packageName,
       currentYearRange.start,
-      currentYearRange.end
+      currentYearRange.end,
     ),
     fetchDownloadsSafely(
       packageName,
       previousYearRange.start,
-      previousYearRange.end
+      previousYearRange.end,
     ),
-  ]);
+  ])
 
   const stats = {
     currentWeekDownloads,
@@ -509,7 +550,7 @@ export async function getPackageStats(
     previousMonthDownloads,
     currentYearDownloads,
     previousYearDownloads,
-  };
+  }
 
   // Only cache if at least one stat succeeded (not all null)
   // This allows retrying failed fetches on browser reload
@@ -520,14 +561,14 @@ export async function getPackageStats(
     previousMonthDownloads,
     currentYearDownloads,
     previousYearDownloads,
-  ].some((value) => value !== null);
+  ].some((value) => value !== null)
 
   if (hasAnySuccess) {
     // Cache the fresh data (even if some stats are null)
-    setCachedStats(packageName, stats);
+    setCachedStats(packageName, stats)
   }
   // If all stats are null (all fetches failed), don't cache
   // This allows retrying on browser reload
 
-  return stats;
+  return stats
 }

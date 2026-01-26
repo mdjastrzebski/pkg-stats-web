@@ -1,3 +1,11 @@
+// NPM Package Name Validation Constants
+const MAX_PACKAGE_NAME_LENGTH = 214 // Maximum length for NPM package names
+
+export interface ValidationResult {
+  valid: boolean
+  error?: string
+}
+
 /**
  * Validate NPM package name format
  * NPM package names:
@@ -7,49 +15,56 @@
  * - Cannot contain spaces or special characters
  * - Length must be between 1 and 214 characters
  */
-export function validatePackageName(packageName: string): { valid: boolean; error?: string } {
-  const trimmed = packageName.trim();
-  
+export function validatePackageName(packageName: string): ValidationResult {
+  const trimmed = packageName.trim()
+
   if (!trimmed) {
-    return { valid: false, error: 'Please enter a package name' };
+    return { valid: false, error: "Please enter a package name" }
   }
 
-  if (trimmed.length > 214) {
-    return { valid: false, error: 'Package name is too long (max 214 characters)' };
+  if (trimmed.length > MAX_PACKAGE_NAME_LENGTH) {
+    return {
+      valid: false,
+      error: `Package name is too long (maximum ${MAX_PACKAGE_NAME_LENGTH} characters)`,
+    }
   }
 
   // Scoped package format: @scope/package
-  const scopedPattern = /^@[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9._-]*$/;
+  const scopedPattern = /^@[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9._-]*$/
   // Unscoped package format: package-name
-  const unscopedPattern = /^[a-z0-9][a-z0-9._-]*$/;
+  const unscopedPattern = /^[a-z0-9][a-z0-9._-]*$/
 
-  if (trimmed.startsWith('@')) {
+  if (trimmed.startsWith("@")) {
     // Scoped package
     if (!scopedPattern.test(trimmed)) {
       return {
         valid: false,
-        error: 'Invalid scoped package name format. Use: @scope/package-name',
-      };
+        error: "Invalid scoped package name format. Use: @scope/package-name",
+      }
     }
   } else {
     // Unscoped package
     if (!unscopedPattern.test(trimmed)) {
       return {
         valid: false,
-        error: 'Invalid package name. Use only lowercase letters, numbers, hyphens, dots, and underscores',
-      };
+        error:
+          "Invalid package name. Use only lowercase letters, numbers, hyphens, dots, and underscores",
+      }
     }
   }
 
   // Additional checks: cannot start with dot or underscore (for unscoped)
-  if (!trimmed.startsWith('@') && (trimmed.startsWith('.') || trimmed.startsWith('_'))) {
+  if (
+    !trimmed.startsWith("@") &&
+    (trimmed.startsWith(".") || trimmed.startsWith("_"))
+  ) {
     return {
       valid: false,
-      error: 'Package name cannot start with a dot or underscore',
-    };
+      error: "Package name cannot start with a dot or underscore",
+    }
   }
 
-  return { valid: true };
+  return { valid: true }
 }
 
 /**
@@ -58,15 +73,15 @@ export function validatePackageName(packageName: string): { valid: boolean; erro
  */
 export function calculateChangePercent(
   current: number | null,
-  previous: number | null
+  previous: number | null,
 ): number | null {
   if (current === null || previous === null) {
-    return null;
+    return null
   }
   if (previous === 0) {
-    return null;
+    return null
   }
-  return ((current - previous) / previous) * 100;
+  return ((current - previous) / previous) * 100
 }
 
 /**
@@ -75,9 +90,9 @@ export function calculateChangePercent(
  */
 export function formatNumber(num: number | null): string {
   if (num === null) {
-    return '-';
+    return "-"
   }
-  return new Intl.NumberFormat('en-US').format(num);
+  return new Intl.NumberFormat("en-US").format(num)
 }
 
 /**
@@ -85,26 +100,26 @@ export function formatNumber(num: number | null): string {
  */
 function toSignificantDigits(num: number, digits: number): string {
   if (num === 0) {
-    return '0';
+    return "0"
   }
-  
+
   // Use toPrecision to get significant digits
-  const precision = num.toPrecision(digits);
-  
+  const precision = num.toPrecision(digits)
+
   // If toPrecision returns scientific notation, convert to regular decimal
-  if (precision.includes('e')) {
-    const numValue = parseFloat(precision);
+  if (precision.includes("e")) {
+    const numValue = parseFloat(precision)
     // For very small numbers, use exponential notation as fallback
     // But try to avoid it by using more decimal places if needed
     if (Math.abs(numValue) < 0.001) {
-      return numValue.toExponential(2);
+      return numValue.toExponential(2)
     }
-    return numValue.toString();
+    return numValue.toString()
   }
-  
+
   // Remove trailing zeros after decimal point
-  const numValue = parseFloat(precision);
-  return numValue.toString();
+  const numValue = parseFloat(precision)
+  return numValue.toString()
 }
 
 /**
@@ -113,12 +128,12 @@ function toSignificantDigits(num: number, digits: number): string {
  */
 export function calculateChange(
   current: number | null,
-  previous: number | null
+  previous: number | null,
 ): number | null {
   if (current === null || previous === null) {
-    return null;
+    return null
   }
-  return current - previous;
+  return current - previous
 }
 
 /**
@@ -128,9 +143,9 @@ export function calculateChange(
  */
 export function formatChangePercent(percent: number | null): string {
   if (percent === null) {
-    return '-';
+    return "-"
   }
-  const sign = percent >= 0 ? '+' : '';
-  const formatted = toSignificantDigits(percent, 2);
-  return `${sign}${formatted}%`;
+  const sign = percent >= 0 ? "+" : ""
+  const formatted = toSignificantDigits(percent, 2)
+  return `${sign}${formatted}%`
 }

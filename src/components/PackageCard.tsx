@@ -1,9 +1,9 @@
-import type { PackageStats } from '../types';
-import { formatNumber, formatChangePercent } from '../utils/stats';
+import type { PackageStats } from "../types"
+import { formatNumber, formatChangePercent } from "../utils/stats"
 
 interface PackageCardProps {
-  stats: PackageStats;
-  onRemove: () => void;
+  stats: PackageStats
+  onRemove: () => void
 }
 
 export function PackageCard({ stats, onRemove }: PackageCardProps) {
@@ -15,22 +15,20 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
     yearChangePercent,
     isLoading,
     error,
-  } = stats;
+  } = stats
 
   const getChangeColor = (percent: number | null): string => {
     if (percent === null) {
-      return 'text-slate-400';
+      return "text-slate-400"
     }
-    return percent >= 0
-      ? 'text-green-400'
-      : 'text-rose-400';
-  };
+    return percent >= 0 ? "text-green-400" : "text-rose-400"
+  }
 
-  const changeColor = getChangeColor(changePercent);
-  const monthChangeColor = getChangeColor(monthChangePercent);
-  const yearChangeColor = getChangeColor(yearChangePercent);
+  const changeColor = getChangeColor(changePercent)
+  const monthChangeColor = getChangeColor(monthChangePercent)
+  const yearChangeColor = getChangeColor(yearChangePercent)
 
-  const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
+  const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`
 
   if (error) {
     return (
@@ -66,7 +64,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
         </div>
         <p className="text-red-400">{error}</p>
       </div>
-    );
+    )
   }
 
   if (isLoading) {
@@ -106,7 +104,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           <div className="h-6 bg-slate-700/50 w-1/2 rounded-lg"></div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -154,9 +152,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
         <div className="pt-3 border-t border-slate-700/50">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <div>
-              <p className="text-xs text-slate-400 tracking-wider mb-1">
-                Week
-              </p>
+              <p className="text-xs text-slate-400 tracking-wider mb-1">Week</p>
               <p className={`text-lg font-bold font-mono ${changeColor}`}>
                 {formatChangePercent(changePercent)}
               </p>
@@ -172,9 +168,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             </div>
 
             <div>
-              <p className="text-xs text-slate-400 tracking-wider mb-1">
-                Year
-              </p>
+              <p className="text-xs text-slate-400 tracking-wider mb-1">Year</p>
               <p className={`text-lg font-bold font-mono ${yearChangeColor}`}>
                 {formatChangePercent(yearChangePercent)}
               </p>
@@ -183,5 +177,5 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

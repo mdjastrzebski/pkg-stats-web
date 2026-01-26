@@ -1,9 +1,9 @@
-import type { PackageStats } from '../types';
-import { PackageCard } from './PackageCard';
+import type { PackageStats } from "../types"
+import { PackageCard } from "./PackageCard"
 
 interface PackageListProps {
-  packages: PackageStats[];
-  onRemove: (packageName: string) => void;
+  packages: PackageStats[]
+  onRemove: (packageName: string) => void
 }
 
 export function PackageList({ packages, onRemove }: PackageListProps) {
@@ -14,7 +14,7 @@ export function PackageList({ packages, onRemove }: PackageListProps) {
           No packages added yet. Add your first package above!
         </p>
       </div>
-    );
+    )
   }
 
   return (
@@ -27,5 +27,5 @@ export function PackageList({ packages, onRemove }: PackageListProps) {
         />
       ))}
     </div>
-  );
+  )
 }
