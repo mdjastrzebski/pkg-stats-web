@@ -134,32 +134,34 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           </p>
         </div>
 
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-700 space-y-3">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Week over week change
-            </p>
-            <p className={`text-lg font-semibold ${changeColor}`}>
-              {formatChangePercent(changePercent)}
-            </p>
-          </div>
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Week
+              </p>
+              <p className={`text-sm font-semibold ${changeColor}`}>
+                {formatChangePercent(changePercent)}
+              </p>
+            </div>
 
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Month over month change
-            </p>
-            <p className={`text-lg font-semibold ${monthChangeColor}`}>
-              {formatChangePercent(monthChangePercent)}
-            </p>
-          </div>
+            <div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Month
+              </p>
+              <p className={`text-sm font-semibold ${monthChangeColor}`}>
+                {formatChangePercent(monthChangePercent)}
+              </p>
+            </div>
 
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Year over year change
-            </p>
-            <p className={`text-lg font-semibold ${yearChangeColor}`}>
-              {formatChangePercent(yearChangePercent)}
-            </p>
+            <div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Year
+              </p>
+              <p className={`text-sm font-semibold ${yearChangeColor}`}>
+                {formatChangePercent(yearChangePercent)}
+              </p>
+            </div>
           </div>
         </div>
       </div>
