@@ -4,6 +4,51 @@ const API_BASE = 'https://api.npmjs.org/downloads/range';
 const CACHE_EXPIRY_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 const CACHE_PREFIX = 'npm_stats_cache_';
 
+// Rate limiting configuration
+const MAX_CONCURRENT_REQUESTS = 6; // Limit concurrent API requests
+const REQUEST_DELAY_MS = 100; // Delay between request batches (ms)
+
+// Request queue management
+let activeRequests = 0;
+const requestQueue: Array<() => Promise<void>> = [];
+
+/**
+ * Throttle API requests to avoid overwhelming the NPM API
+ */
+async function throttledFetch<T>(
+  fn: () => Promise<T>
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const executeRequest = async () => {
+      activeRequests++;
+      try {
+        const result = await fn();
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      } finally {
+        activeRequests--;
+        // Process next request in queue
+        if (requestQueue.length > 0) {
+          const nextRequest = requestQueue.shift();
+          if (nextRequest) {
+            // Add small delay between batches
+            setTimeout(() => {
+              nextRequest();
+            }, REQUEST_DELAY_MS);
+          }
+        }
+      }
+    };
+
+    if (activeRequests < MAX_CONCURRENT_REQUESTS) {
+      executeRequest();
+    } else {
+      requestQueue.push(executeRequest);
+    }
+  });
+}
+
 interface CachedStats {
   data: {
     currentWeekDownloads: number | null;
@@ -151,31 +196,75 @@ function setCachedStats(
     };
     localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
   } catch (error) {
-    // If there's an error writing to localStorage, just log it
-    // Don't fail the request if caching fails
-    console.warn('Error writing to cache:', error);
+    // Handle quota exceeded error specifically
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.warn('LocalStorage quota exceeded. Clearing old cache entries...');
+      // Try to clear some old cache entries
+      try {
+        const keys = Object.keys(localStorage);
+        const cacheKeys = keys.filter((key) => key.startsWith(CACHE_PREFIX));
+        // Remove oldest 50% of cache entries
+        const entries = cacheKeys.map((key) => {
+          try {
+            const cached = localStorage.getItem(key);
+            if (cached) {
+              const parsed: CachedStats = JSON.parse(cached);
+              return { key, timestamp: parsed.timestamp };
+            }
+          } catch {
+            return null;
+          }
+          return null;
+        }).filter((entry): entry is { key: string; timestamp: number } => entry !== null);
+        
+        entries.sort((a, b) => a.timestamp - b.timestamp);
+        const toRemove = Math.ceil(entries.length / 2);
+        entries.slice(0, toRemove).forEach((entry) => {
+          localStorage.removeItem(entry.key);
+        });
+        
+        // Retry setting the cache
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
+        } catch (retryError) {
+          console.warn('Failed to cache after cleanup:', retryError);
+        }
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup cache:', cleanupError);
+      }
+    } else {
+      // If there's another error writing to localStorage, just log it
+      // Don't fail the request if caching fails
+      console.warn('Error writing to cache:', error);
+    }
   }
 }
 
 /**
  * Fetch download statistics for a package in a given date range
+ * Uses throttling to limit concurrent requests
  */
 async function fetchDownloads(
   packageName: string,
   start: string,
   end: string
 ): Promise<DownloadData> {
-  const url = `${API_BASE}/${start}:${end}/${packageName}`;
-  const response = await fetch(url);
+  return throttledFetch(async () => {
+    const url = `${API_BASE}/${start}:${end}/${packageName}`;
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error(`Package "${packageName}" not found`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`Package "${packageName}" not found`);
+      }
+      if (response.status === 429) {
+        throw new Error(`Rate limit exceeded. Please try again later.`);
+      }
+      throw new Error(`Failed to fetch stats for "${packageName}" (${response.status})`);
     }
-    throw new Error(`Failed to fetch stats for "${packageName}"`);
-  }
 
-  return response.json();
+    return response.json();
+  });
 }
 
 /**

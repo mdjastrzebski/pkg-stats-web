@@ -1,4 +1,58 @@
 /**
+ * Validate NPM package name format
+ * NPM package names:
+ * - Can be lowercase letters, numbers, hyphens, underscores, dots
+ * - Can be scoped (e.g., @scope/package)
+ * - Cannot start with dot or underscore (unless scoped)
+ * - Cannot contain spaces or special characters
+ * - Length must be between 1 and 214 characters
+ */
+export function validatePackageName(packageName: string): { valid: boolean; error?: string } {
+  const trimmed = packageName.trim();
+  
+  if (!trimmed) {
+    return { valid: false, error: 'Please enter a package name' };
+  }
+
+  if (trimmed.length > 214) {
+    return { valid: false, error: 'Package name is too long (max 214 characters)' };
+  }
+
+  // Scoped package format: @scope/package
+  const scopedPattern = /^@[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9._-]*$/;
+  // Unscoped package format: package-name
+  const unscopedPattern = /^[a-z0-9][a-z0-9._-]*$/;
+
+  if (trimmed.startsWith('@')) {
+    // Scoped package
+    if (!scopedPattern.test(trimmed)) {
+      return {
+        valid: false,
+        error: 'Invalid scoped package name format. Use: @scope/package-name',
+      };
+    }
+  } else {
+    // Unscoped package
+    if (!unscopedPattern.test(trimmed)) {
+      return {
+        valid: false,
+        error: 'Invalid package name. Use only lowercase letters, numbers, hyphens, dots, and underscores',
+      };
+    }
+  }
+
+  // Additional checks: cannot start with dot or underscore (for unscoped)
+  if (!trimmed.startsWith('@') && (trimmed.startsWith('.') || trimmed.startsWith('_'))) {
+    return {
+      valid: false,
+      error: 'Package name cannot start with a dot or underscore',
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
  * Calculate the percentage change between two values
  * Returns null if either value is null or if previous period is 0
  */
@@ -51,6 +105,20 @@ function toSignificantDigits(num: number, digits: number): string {
   // Remove trailing zeros after decimal point
   const numValue = parseFloat(precision);
   return numValue.toString();
+}
+
+/**
+ * Calculate the change (difference) between two values
+ * Returns null if either value is null
+ */
+export function calculateChange(
+  current: number | null,
+  previous: number | null
+): number | null {
+  if (current === null || previous === null) {
+    return null;
+  }
+  return current - previous;
 }
 
 /**

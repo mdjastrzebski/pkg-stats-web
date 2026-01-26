@@ -25,7 +25,16 @@ export function useLocalStorage(): {
 
   // Update local storage whenever packages change
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(packages));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(packages));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.error('LocalStorage quota exceeded. Cannot save packages.');
+        // Optionally show user notification here
+      } else {
+        console.error('Error saving to localStorage:', error);
+      }
+    }
   }, [packages]);
 
   const addPackage = (packageName: string) => {

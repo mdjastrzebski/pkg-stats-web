@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { getPackageStats, clearAllCache } from './services/npmApi';
 import type { PackageStats } from './types';
-import { calculateChangePercent } from './utils/stats';
+import { calculateChangePercent, calculateChange } from './utils/stats';
 import { PackageInput } from './components/PackageInput';
 import { PackageList } from './components/PackageList';
 
@@ -68,17 +68,6 @@ function App() {
           data.currentYearDownloads,
           data.previousYearDownloads
         );
-
-        // Calculate changes, returning null if either value is null
-        const calculateChange = (
-          current: number | null,
-          previous: number | null
-        ): number | null => {
-          if (current === null || previous === null) {
-            return null;
-          }
-          return current - previous;
-        };
 
         return {
           packageName,
@@ -155,6 +144,33 @@ function App() {
 
   const handleAddPackage = (packageName: string) => {
     addPackage(packageName);
+    // Immediately set loading state for the new package
+    setStats((prev) => {
+      // Check if package already exists
+      if (prev.some((s) => s.packageName === packageName.toLowerCase())) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          packageName: packageName.toLowerCase(),
+          currentWeekDownloads: null,
+          previousWeekDownloads: null,
+          change: null,
+          changePercent: null,
+          currentMonthDownloads: null,
+          previousMonthDownloads: null,
+          monthChange: null,
+          monthChangePercent: null,
+          currentYearDownloads: null,
+          previousYearDownloads: null,
+          yearChange: null,
+          yearChangePercent: null,
+          isLoading: true,
+          error: null,
+        },
+      ];
+    });
   };
 
   const handleRemovePackage = (packageName: string) => {
@@ -173,6 +189,7 @@ function App() {
             disabled={isRefreshing || packages.length === 0}
             className="absolute top-0 right-0 p-3 border-2 border-slate-700/50 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-purple-500/50 hover:text-purple-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
             aria-label="Refresh stats"
+            aria-busy={isRefreshing}
             title="Refresh stats"
           >
             <svg
@@ -199,6 +216,11 @@ function App() {
 
         <div className="mb-8">
           <PackageInput onAdd={handleAddPackage} isLoading={isLoadingAny} />
+        </div>
+
+        <div aria-live="polite" aria-atomic="true" className="sr-only">
+          {isLoadingAny && 'Loading package statistics'}
+          {!isLoadingAny && stats.length > 0 && `${stats.length} package${stats.length === 1 ? '' : 's'} loaded`}
         </div>
 
         <PackageList packages={stats} onRemove={handleRemovePackage} />
