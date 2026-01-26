@@ -38,6 +38,10 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
           placeholder="Enter NPM package name"
           className="flex-1 px-4 sm:px-5 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-purple-500/50 focus:bg-slate-800/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all text-base sm:text-lg"
           disabled={isLoading}
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          autoComplete="off"
           aria-label="NPM package name input"
           aria-invalid={error !== null}
           aria-describedby={error ? "package-input-error" : undefined}
