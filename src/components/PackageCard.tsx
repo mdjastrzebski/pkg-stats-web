@@ -30,13 +30,20 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
   const monthChangeColor = getChangeColor(monthChangePercent);
   const yearChangeColor = getChangeColor(yearChangePercent);
 
+  const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
+
   if (error) {
     return (
       <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg transition-all">
         <div className="flex justify-between items-start mb-2 gap-3">
-          <h3 className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2">
+          <a
+            href={npmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-purple-400 transition-colors"
+          >
             {packageName}
-          </h3>
+          </a>
           <button
             onClick={onRemove}
             className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
@@ -66,9 +73,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
     return (
       <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg">
         <div className="flex justify-between items-start mb-2 gap-3">
-          <h3 className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2">
+          <a
+            href={npmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-purple-400 transition-colors"
+          >
             {packageName}
-          </h3>
+          </a>
           <button
             onClick={onRemove}
             className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
@@ -100,9 +112,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
   return (
     <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-purple-500/50 hover:bg-slate-800/90 transition-all cursor-pointer">
       <div className="flex justify-between items-start mb-4 gap-3">
-        <h3 className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2">
+        <a
+          href={npmUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-purple-400 transition-colors"
+        >
           {packageName}
-        </h3>
+        </a>
         <button
           onClick={onRemove}
           className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
