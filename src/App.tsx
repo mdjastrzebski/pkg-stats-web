@@ -73,7 +73,11 @@ function App() {
       });
 
       const results = await Promise.all(statsPromises);
-      setStats(results);
+      // Sort by currentWeekDownloads descending (highest to lowest)
+      const sortedResults = results.sort(
+        (a, b) => b.currentWeekDownloads - a.currentWeekDownloads
+      );
+      setStats(sortedResults);
     };
 
     if (packages.length > 0) {
