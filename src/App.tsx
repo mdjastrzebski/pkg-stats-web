@@ -185,8 +185,8 @@ function App() {
   const isLoadingAny = stats.some((s) => s.isLoading)
 
   return (
-    <div className="min-h-screen bg-slate-950 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-slate-950 py-8 px-4 sm:px-6 w-full">
+      <div className="max-w-7xl mx-auto w-full">
         <header className="relative text-center mb-12">
           <button
             onClick={handleRefresh}
