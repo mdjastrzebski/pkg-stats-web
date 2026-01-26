@@ -1,0 +1,43 @@
+import { useState, useEffect } from 'react';
+
+const STORAGE_KEY = 'npm-stats-favorites';
+
+/**
+ * Custom hook for managing favorite packages in local storage
+ */
+export function useLocalStorage(): {
+  packages: string[];
+  addPackage: (packageName: string) => void;
+  removePackage: (packageName: string) => void;
+} {
+  const [packages, setPackages] = useState<string[]>(() => {
+    // Initialize from local storage
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  // Update local storage whenever packages change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(packages));
+  }, [packages]);
+
+  const addPackage = (packageName: string) => {
+    const normalized = packageName.trim().toLowerCase();
+    if (normalized && !packages.includes(normalized)) {
+      setPackages((prev) => [...prev, normalized]);
+    }
+  };
+
+  const removePackage = (packageName: string) => {
+    setPackages((prev) => prev.filter((pkg) => pkg !== packageName));
+  };
+
+  return { packages, addPackage, removePackage };
+}
