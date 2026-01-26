@@ -10,7 +10,7 @@ export function PackageList({ packages, onRemove }: PackageListProps) {
   if (packages.length === 0) {
     return (
       <div className="text-center py-16">
-        <p className="text-slate-400 text-xl tracking-wider">
+        <p className="text-slate-500 text-xl tracking-wider">
           No packages added yet. Add your first package above!
         </p>
       </div>

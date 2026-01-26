@@ -22,7 +22,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
       return 'text-slate-400';
     }
     return percent >= 0
-      ? 'text-emerald-300'
+      ? 'text-green-400'
       : 'text-rose-400';
   };
 
@@ -32,14 +32,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 
   if (error) {
     return (
-      <div className="bg-slate-900 border-2 border-rose-500 p-6 rounded-lg">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
+      <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg transition-all">
+        <div className="flex justify-between items-start mb-2 gap-3">
+          <h3 className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2">
             {packageName}
           </h3>
           <button
             onClick={onRemove}
-            className="text-slate-400 hover:text-slate-200 transition-colors p-1"
+            className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
             aria-label={`Remove ${packageName}`}
           >
             <svg
@@ -57,21 +57,21 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             </svg>
           </button>
         </div>
-        <p className="text-rose-400">{error}</p>
+        <p className="text-red-400">{error}</p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="bg-slate-900 border-2 border-slate-700 p-6 rounded-lg">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
+      <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg">
+        <div className="flex justify-between items-start mb-2 gap-3">
+          <h3 className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2">
             {packageName}
           </h3>
           <button
             onClick={onRemove}
-            className="text-slate-400 hover:text-slate-200 transition-colors p-1"
+            className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
             aria-label={`Remove ${packageName}`}
           >
             <svg
@@ -90,22 +90,22 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           </button>
         </div>
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-700 w-3/4 mb-2 rounded"></div>
-          <div className="h-6 bg-slate-700 w-1/2 rounded"></div>
+          <div className="h-6 bg-slate-700/50 w-3/4 mb-2 rounded-lg"></div>
+          <div className="h-6 bg-slate-700/50 w-1/2 rounded-lg"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900 border-2 border-slate-700 p-6 hover:border-emerald-300 transition-all rounded-lg">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
+    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-purple-500/50 hover:bg-slate-800/90 transition-all cursor-pointer">
+      <div className="flex justify-between items-start mb-4 gap-3">
+        <h3 className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2">
           {packageName}
         </h3>
         <button
           onClick={onRemove}
-          className="text-slate-400 hover:text-slate-200 transition-colors p-1"
+          className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
           aria-label={`Remove ${packageName}`}
         >
           <svg
@@ -129,12 +129,12 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           <p className="text-xs text-slate-400 tracking-wider mb-1">
             Downloads (last 7 days)
           </p>
-          <p className="text-4xl font-bold text-emerald-200 font-mono">
+          <p className="text-5xl font-bold text-purple-400 font-mono">
             {formatNumber(currentWeekDownloads)}
           </p>
         </div>
 
-        <div className="pt-3 border-t-2 border-slate-700">
+        <div className="pt-3 border-t border-slate-700/50">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <div>
               <p className="text-xs text-slate-400 tracking-wider mb-1">

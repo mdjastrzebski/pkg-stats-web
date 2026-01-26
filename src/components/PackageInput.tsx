@@ -39,19 +39,19 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
             setError(null);
           }}
           placeholder="Enter NPM package name (e.g., react)"
-          className="flex-1 px-5 py-4 border-2 border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+          className="flex-1 px-5 py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-purple-500/50 focus:bg-slate-800/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
           disabled={isLoading}
         />
         <button
           type="submit"
           disabled={isLoading}
-          className="px-8 py-4 border-2 border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 hover:border-emerald-300 hover:text-emerald-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all tracking-wider text-lg rounded-lg"
+          className="px-8 py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:border-purple-500/50 hover:text-purple-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all tracking-wider text-lg rounded-lg font-medium"
         >
           Add
         </button>
       </div>
       {error && (
-        <p className="mt-3 text-sm text-rose-400 tracking-wide">{error}</p>
+        <p className="mt-3 text-sm text-red-400 tracking-wide">{error}</p>
       )}
     </form>
   );
