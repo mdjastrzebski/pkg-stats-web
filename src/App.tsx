@@ -165,13 +165,13 @@ function App() {
   const isLoadingAny = stats.some((s) => s.isLoading);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
+    <div className="min-h-screen bg-slate-950 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <header className="relative text-center mb-8">
+        <header className="relative text-center mb-12">
           <button
             onClick={handleRefresh}
             disabled={isRefreshing || packages.length === 0}
-            className="absolute top-0 right-0 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="absolute top-0 right-0 p-3 border-4 border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:border-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
             aria-label="Refresh stats"
             title="Refresh stats"
           >
@@ -180,19 +180,19 @@ function App() {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              strokeWidth={3}
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
+                strokeLinecap="square"
+                strokeLinejoin="miter"
                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
               />
             </svg>
           </button>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-6xl font-bold text-slate-100 mb-4 tracking-tight">
             NPM Package Stats
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-400 text-lg">
             Track download statistics for your favorite NPM packages
           </p>
         </header>

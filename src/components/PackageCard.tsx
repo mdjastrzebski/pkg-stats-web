@@ -19,11 +19,11 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 
   const getChangeColor = (percent: number | null): string => {
     if (percent === null) {
-      return 'text-gray-600 dark:text-gray-400';
+      return 'text-slate-400';
     }
     return percent >= 0
-      ? 'text-green-600 dark:text-green-400'
-      : 'text-red-600 dark:text-red-400';
+      ? 'text-emerald-400'
+      : 'text-rose-400';
   };
 
   const changeColor = getChangeColor(changePercent);
@@ -32,14 +32,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-red-200 dark:border-red-800">
+      <div className="bg-slate-900 border-4 border-rose-500 p-6 rounded-lg">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
             {packageName}
           </h3>
           <button
             onClick={onRemove}
-            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            className="text-slate-400 hover:text-slate-200 transition-colors p-1"
             aria-label={`Remove ${packageName}`}
           >
             <svg
@@ -47,31 +47,31 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              strokeWidth={3}
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
+                strokeLinecap="square"
+                strokeLinejoin="miter"
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </button>
         </div>
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-rose-400">{error}</p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="bg-slate-900 border-4 border-slate-700 p-6 rounded-lg">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
             {packageName}
           </h3>
           <button
             onClick={onRemove}
-            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+            className="text-slate-400 hover:text-slate-200 transition-colors p-1"
             aria-label={`Remove ${packageName}`}
           >
             <svg
@@ -79,33 +79,33 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              strokeWidth={3}
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
+                strokeLinecap="square"
+                strokeLinejoin="miter"
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </button>
         </div>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div className="h-6 bg-slate-700 w-3/4 mb-2 rounded"></div>
+          <div className="h-6 bg-slate-700 w-1/2 rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="bg-slate-900 border-4 border-slate-700 p-6 hover:border-emerald-500 transition-all rounded-lg">
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+        <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
           {packageName}
         </h3>
         <button
           onClick={onRemove}
-          className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          className="text-slate-400 hover:text-slate-200 transition-colors p-1"
           aria-label={`Remove ${packageName}`}
         >
           <svg
@@ -113,52 +113,52 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            strokeWidth={3}
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
+              strokeLinecap="square"
+              strokeLinejoin="miter"
               d="M6 18L18 6M6 6l12 12"
             />
           </svg>
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-slate-400 tracking-wider mb-1">
             Downloads (last 7 days)
           </p>
-          <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+          <p className="text-4xl font-bold text-slate-100 font-mono">
             {formatNumber(currentWeekDownloads)}
           </p>
         </div>
 
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <div className="pt-3 border-t-4 border-slate-700">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-slate-400 tracking-wider mb-1">
                 Week
               </p>
-              <p className={`text-sm font-semibold ${changeColor}`}>
+              <p className={`text-lg font-bold font-mono ${changeColor}`}>
                 {formatChangePercent(changePercent)}
               </p>
             </div>
 
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-slate-400 tracking-wider mb-1">
                 Month
               </p>
-              <p className={`text-sm font-semibold ${monthChangeColor}`}>
+              <p className={`text-lg font-bold font-mono ${monthChangeColor}`}>
                 {formatChangePercent(monthChangePercent)}
               </p>
             </div>
 
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-slate-400 tracking-wider mb-1">
                 Year
               </p>
-              <p className={`text-sm font-semibold ${yearChangeColor}`}>
+              <p className={`text-lg font-bold font-mono ${yearChangeColor}`}>
                 {formatChangePercent(yearChangePercent)}
               </p>
             </div>

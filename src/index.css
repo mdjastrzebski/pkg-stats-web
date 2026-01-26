@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+* {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+body {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Use Helvetica/sans-serif for smaller text */
+.text-xs,
+.text-sm,
+input,
+button {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

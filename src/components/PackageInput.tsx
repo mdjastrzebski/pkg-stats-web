@@ -29,8 +29,8 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto">
-      <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+      <div className="flex gap-3">
         <input
           type="text"
           value={inputValue}
@@ -39,19 +39,19 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
             setError(null);
           }}
           placeholder="Enter NPM package name (e.g., react)"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+          className="flex-1 px-5 py-4 border-4 border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
           disabled={isLoading}
         />
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-8 py-4 border-4 border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 hover:border-slate-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all tracking-wider text-lg rounded-lg"
         >
           Add
         </button>
       </div>
       {error && (
-        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-3 text-sm text-rose-400 tracking-wide">{error}</p>
       )}
     </form>
   );

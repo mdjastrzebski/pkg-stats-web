@@ -9,8 +9,8 @@ interface PackageListProps {
 export function PackageList({ packages, onRemove }: PackageListProps) {
   if (packages.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400 text-lg">
+      <div className="text-center py-16">
+        <p className="text-slate-400 text-xl tracking-wider">
           No packages added yet. Add your first package above!
         </p>
       </div>
