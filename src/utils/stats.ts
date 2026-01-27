@@ -85,14 +85,23 @@ export function calculateChangePercent(
 }
 
 /**
- * Format a number with commas for readability
+ * Format a number to 3 most significant digits with commas
  * Returns '-' if value is null
  */
 export function formatNumber(num: number | null): string {
   if (num === null) {
     return "-"
   }
-  return new Intl.NumberFormat("en-US").format(num)
+
+  if (num === 0) {
+    return "0"
+  }
+
+  // Round to 3 significant digits
+  const rounded = parseFloat(toSignificantDigits(num, 3))
+
+  // Format with commas
+  return new Intl.NumberFormat("en-US").format(rounded)
 }
 
 /**
@@ -173,7 +182,7 @@ export function formatChangePercent(percent: number | null): string {
   if (percent === null) {
     return "-"
   }
-  const sign = percent >= 0 ? "+" : ""
+  const sign = percent >= 0 ? "+" : "-"
   const absPercent = Math.abs(percent)
 
   let formatted: string
