@@ -83,12 +83,13 @@ interface CachedStats {
 }
 
 /**
- * Get the date range for the last 7 days
+ * Get the date range for the last 7 days (excluding today)
  */
 function getLast7DaysRange(): DateRange {
   const end = new Date()
-  const start = new Date()
-  start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // Last 7 days including today
+  end.setDate(end.getDate() - 1) // Yesterday (exclude today)
+  const start = new Date(end)
+  start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // 6 days before yesterday (7 days total)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -97,11 +98,11 @@ function getLast7DaysRange(): DateRange {
 }
 
 /**
- * Get the date range for the previous 7 days
+ * Get the date range for the previous 7 days (ending one day before current period starts)
  */
 function getPrevious7DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - DAYS_PER_WEEK) // 7 days ago
+  end.setDate(end.getDate() - 1 - DAYS_PER_WEEK) // 8 days ago (one day before current starts)
   const start = new Date(end)
   start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // 6 days before that (7 days total)
 
@@ -112,12 +113,13 @@ function getPrevious7DaysRange(): DateRange {
 }
 
 /**
- * Get the date range for the last 30 days
+ * Get the date range for the last 30 days (excluding today)
  */
 function getLast30DaysRange(): DateRange {
   const end = new Date()
-  const start = new Date()
-  start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // Last 30 days including today
+  end.setDate(end.getDate() - 1) // Yesterday (exclude today)
+  const start = new Date(end)
+  start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // 29 days before yesterday (30 days total)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -126,11 +128,11 @@ function getLast30DaysRange(): DateRange {
 }
 
 /**
- * Get the date range for the previous 30 days
+ * Get the date range for the previous 30 days (ending one day before current period starts)
  */
 function getPrevious30DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - DAYS_PER_MONTH) // 30 days ago
+  end.setDate(end.getDate() - 1 - DAYS_PER_MONTH) // 31 days ago (one day before current starts)
   const start = new Date(end)
   start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // 29 days before that (30 days total)
 
@@ -141,12 +143,13 @@ function getPrevious30DaysRange(): DateRange {
 }
 
 /**
- * Get the date range for the last 365 days
+ * Get the date range for the last 365 days (excluding today)
  */
 function getLast365DaysRange(): DateRange {
   const end = new Date()
-  const start = new Date()
-  start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // Last 365 days including today
+  end.setDate(end.getDate() - 1) // Yesterday (exclude today)
+  const start = new Date(end)
+  start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // 364 days before yesterday (365 days total)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -155,11 +158,11 @@ function getLast365DaysRange(): DateRange {
 }
 
 /**
- * Get the date range for the previous 365 days
+ * Get the date range for the previous 365 days (ending one day before current period starts)
  */
 function getPrevious365DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - DAYS_PER_YEAR) // 365 days ago
+  end.setDate(end.getDate() - 1 - DAYS_PER_YEAR) // 366 days ago (one day before current starts)
   const start = new Date(end)
   start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // 364 days before that (365 days total)
 
