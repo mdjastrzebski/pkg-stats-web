@@ -137,6 +137,33 @@ export function calculateChange(
 }
 
 /**
+ * Calculate responsive font size for package names based on length
+ * Scales down font size for long package names to prevent wrapping
+ * @param packageName - The package name to calculate font size for
+ * @param baseSize - Base font size in rem (default: 1.5rem)
+ * @param threshold - Character count threshold to start scaling (default: 35)
+ * @param scaleFactor - Scaling factor per character over threshold (default: 0.02)
+ * @param minSize - Minimum font size in rem (default: 0.875rem)
+ * @returns Font size as a string in rem units
+ */
+export function calculatePackageNameFontSize(
+  packageName: string,
+  baseSize: number = 1.5,
+  threshold: number = 35,
+  scaleFactor: number = 0.02,
+  minSize: number = 0.875,
+): string {
+  if (packageName.length <= threshold) {
+    return `${baseSize}rem`
+  }
+  const scaledSize = Math.max(
+    minSize,
+    baseSize - (packageName.length - threshold) * scaleFactor,
+  )
+  return `${scaledSize}rem`
+}
+
+/**
  * Format percentage change with sign and color indication
  * Returns '-' if value is null
  * Formats to 2 significant digits

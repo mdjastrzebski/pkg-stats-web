@@ -1,5 +1,9 @@
 import type { PackageStats } from "../types"
-import { formatNumber, formatChangePercent } from "../utils/stats"
+import {
+  formatNumber,
+  formatChangePercent,
+  calculatePackageNameFontSize,
+} from "../utils/stats"
 
 interface PackageCardProps {
   stats: PackageStats
@@ -59,9 +63,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             rel="noopener noreferrer"
             className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
             style={{
-              fontSize: packageName.length > 35 
-                ? `${Math.max(0.875, 1.5 - (packageName.length - 35) * 0.02)}rem`
-                : '1.5rem',
+              fontSize: calculatePackageNameFontSize(packageName),
               lineHeight: '1.2'
             }}
             title={packageName}
@@ -103,9 +105,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             rel="noopener noreferrer"
             className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
             style={{
-              fontSize: packageName.length > 35 
-                ? `${Math.max(0.875, 1.5 - (packageName.length - 35) * 0.02)}rem`
-                : '1.5rem',
+              fontSize: calculatePackageNameFontSize(packageName),
               lineHeight: '1.2'
             }}
             title={packageName}
@@ -149,9 +149,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           rel="noopener noreferrer"
           className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
           style={{
-            fontSize: packageName.length > 35 
-              ? `${Math.max(0.875, 1.5 - (packageName.length - 35) * 0.02)}rem`
-              : '1.5rem',
+            fontSize: calculatePackageNameFontSize(packageName),
             lineHeight: '1.2'
           }}
           title={packageName}
