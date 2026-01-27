@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { searchPackages, type PackageSearchResult } from "../services/npmApi"
+import { searchPackages, type PackageSearchResult } from "../services/npm-api"
 
 interface UseAutocompleteOptions {
   debounceMs?: number

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { useLocalStorage } from "./hooks/useLocalStorage"
-import { getPackageStats, clearAllCache } from "./services/npmApi"
+import { useLocalStorage } from "./hooks/use-local-storage"
+import { getPackageStats, clearAllCache } from "./services/npm-api"
 import type { PackageStats } from "./types"
 import { calculateChangePercent, calculateChange } from "./utils/stats"
 import { PackageInput } from "./components/PackageInput"

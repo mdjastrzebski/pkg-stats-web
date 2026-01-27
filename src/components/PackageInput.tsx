@@ -1,6 +1,6 @@
 import { useState, type FormEvent, useEffect, useRef } from "react"
 import { validatePackageName } from "../utils/stats"
-import { useAutocomplete } from "../hooks/useAutocomplete"
+import { useAutocomplete } from "../hooks/use-autocomplete"
 
 interface PackageInputProps {
   onAdd: (packageName: string) => void
