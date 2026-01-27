@@ -140,12 +140,32 @@ export function calculateChange(
  * Format percentage change with sign and color indication
  * Returns '-' if value is null
  * Formats to 2 significant digits
+ * Uses 'k' suffix for thousands (>= 1000) and 'M' suffix for millions (>= 1000000)
  */
 export function formatChangePercent(percent: number | null): string {
   if (percent === null) {
     return "-"
   }
   const sign = percent >= 0 ? "+" : ""
-  const formatted = toSignificantDigits(percent, 2)
-  return `${sign}${formatted}%`
+  const absPercent = Math.abs(percent)
+  
+  let formatted: string
+  let suffix = ""
+  
+  if (absPercent >= 1000000) {
+    // Format as millions
+    const millions = absPercent / 1000000
+    formatted = toSignificantDigits(millions, 2)
+    suffix = "M"
+  } else if (absPercent >= 1000) {
+    // Format as thousands
+    const thousands = absPercent / 1000
+    formatted = toSignificantDigits(thousands, 2)
+    suffix = "k"
+  } else {
+    // Format normally
+    formatted = toSignificantDigits(absPercent, 2)
+  }
+  
+  return `${sign}${formatted}${suffix}%`
 }

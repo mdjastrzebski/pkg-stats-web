@@ -57,7 +57,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             href={npmUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
+            className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+            style={{
+              fontSize: packageName.length > 35 
+                ? `${Math.max(0.875, 1.5 - (packageName.length - 35) * 0.02)}rem`
+                : '1.5rem',
+              lineHeight: '1.2'
+            }}
+            title={packageName}
           >
             {packageName}
           </a>
@@ -94,7 +101,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             href={npmUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
+            className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+            style={{
+              fontSize: packageName.length > 35 
+                ? `${Math.max(0.875, 1.5 - (packageName.length - 35) * 0.02)}rem`
+                : '1.5rem',
+              lineHeight: '1.2'
+            }}
+            title={packageName}
           >
             {packageName}
           </a>
@@ -133,7 +147,14 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
+          className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+          style={{
+            fontSize: packageName.length > 35 
+              ? `${Math.max(0.875, 1.5 - (packageName.length - 35) * 0.02)}rem`
+              : '1.5rem',
+            lineHeight: '1.2'
+          }}
+          title={packageName}
         >
           {packageName}
         </a>
