@@ -85,14 +85,23 @@ export function calculateChangePercent(
 }
 
 /**
- * Format a number with commas for readability
+ * Format a number to 3 most significant digits with commas
  * Returns '-' if value is null
  */
 export function formatNumber(num: number | null): string {
   if (num === null) {
     return "-"
   }
-  return new Intl.NumberFormat("en-US").format(num)
+
+  if (num === 0) {
+    return "0"
+  }
+
+  // Round to 3 significant digits
+  const rounded = parseFloat(toSignificantDigits(num, 3))
+
+  // Format with commas
+  return new Intl.NumberFormat("en-US").format(rounded)
 }
 
 /**
@@ -137,15 +146,62 @@ export function calculateChange(
 }
 
 /**
+ * Calculate responsive font size for package names based on length
+ * Scales down font size for long package names to prevent wrapping
+ * @param packageName - The package name to calculate font size for
+ * @param baseSize - Base font size in rem (default: 1.5rem)
+ * @param threshold - Character count threshold to start scaling (default: 35)
+ * @param scaleFactor - Scaling factor per character over threshold (default: 0.02)
+ * @param minSize - Minimum font size in rem (default: 0.875rem)
+ * @returns Font size as a string in rem units
+ */
+export function calculatePackageNameFontSize(
+  packageName: string,
+  baseSize: number = 1.5,
+  threshold: number = 35,
+  scaleFactor: number = 0.02,
+  minSize: number = 0.875,
+): string {
+  if (packageName.length <= threshold) {
+    return `${baseSize}rem`
+  }
+  const scaledSize = Math.max(
+    minSize,
+    baseSize - (packageName.length - threshold) * scaleFactor,
+  )
+  return `${scaledSize}rem`
+}
+
+/**
  * Format percentage change with sign and color indication
  * Returns '-' if value is null
  * Formats to 2 significant digits
+ * Uses 'k' suffix for thousands (>= 1000) and 'M' suffix for millions (>= 1000000)
  */
 export function formatChangePercent(percent: number | null): string {
   if (percent === null) {
     return "-"
   }
-  const sign = percent >= 0 ? "+" : ""
-  const formatted = toSignificantDigits(percent, 2)
-  return `${sign}${formatted}%`
+  const sign = percent >= 0 ? "+" : "-"
+  const absPercent = Math.abs(percent)
+
+  let formatted: string
+  let suffix = ""
+
+  if (absPercent >= 1000000) {
+    // Format as millions
+    const millions = absPercent / 1000000
+    formatted = toSignificantDigits(millions, 2)
+    suffix = "M"
+  } else if (absPercent >= 1000) {
+    // Format as thousands
+    const thousands = absPercent / 1000
+    formatted = toSignificantDigits(thousands, 2)
+    suffix = "k"
+  } else {
+    // Format normally
+    formatted = toSignificantDigits(absPercent, 2)
+  }
+
+  return `${sign}${formatted}${suffix}%`
 }

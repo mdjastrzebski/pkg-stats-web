@@ -1,5 +1,9 @@
 import type { PackageStats } from "../types"
-import { formatNumber, formatChangePercent } from "../utils/stats"
+import {
+  formatNumber,
+  formatChangePercent,
+  calculatePackageNameFontSize,
+} from "../utils/stats"
 
 interface PackageCardProps {
   stats: PackageStats
@@ -32,95 +36,10 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 
   if (error) {
     return (
-      <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg transition-all">
-        <div className="flex justify-between items-start mb-2 gap-3">
-          <a
-            href={npmUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
-          >
-            {packageName}
-          </a>
-          <button
-            onClick={onRemove}
-            className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
-            aria-label={`Remove ${packageName}`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={3}
-            >
-              <path
-                strokeLinecap="square"
-                strokeLinejoin="miter"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        <p className="text-red-400">{error}</p>
-      </div>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg">
-        <div className="flex justify-between items-start mb-2 gap-3">
-          <a
-            href={npmUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
-          >
-            {packageName}
-          </a>
-          <button
-            onClick={onRemove}
-            className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
-            aria-label={`Remove ${packageName}`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={3}
-            >
-              <path
-                strokeLinecap="square"
-                strokeLinejoin="miter"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        <div className="animate-pulse">
-          <div className="h-6 bg-slate-700/50 w-3/4 mb-2 rounded-lg"></div>
-          <div className="h-6 bg-slate-700/50 w-1/2 rounded-lg"></div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-violet-500/50 hover:bg-slate-800/90 transition-all cursor-pointer">
-      <div className="flex justify-between items-start mb-4 gap-3">
-        <a
-          href={npmUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-2xl font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors"
-        >
-          {packageName}
-        </a>
+      <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg transition-all relative">
         <button
           onClick={onRemove}
-          className="text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
+          className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
           aria-label={`Remove ${packageName}`}
         >
           <svg
@@ -137,6 +56,106 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             />
           </svg>
         </button>
+        <div className="flex justify-between items-start mb-2 gap-3 pr-8">
+          <a
+            href={npmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+            style={{
+              fontSize: calculatePackageNameFontSize(packageName),
+              lineHeight: "1.2",
+            }}
+            title={packageName}
+          >
+            {packageName}
+          </a>
+        </div>
+        <p className="text-red-400">{error}</p>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg relative">
+        <button
+          onClick={onRemove}
+          className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
+          aria-label={`Remove ${packageName}`}
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={3}
+          >
+            <path
+              strokeLinecap="square"
+              strokeLinejoin="miter"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        <div className="flex justify-between items-start mb-2 gap-3 pr-8">
+          <a
+            href={npmUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+            style={{
+              fontSize: calculatePackageNameFontSize(packageName),
+              lineHeight: "1.2",
+            }}
+            title={packageName}
+          >
+            {packageName}
+          </a>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-6 bg-slate-700/50 w-3/4 mb-2 rounded-lg"></div>
+          <div className="h-6 bg-slate-700/50 w-1/2 rounded-lg"></div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-violet-500/50 hover:bg-slate-800/90 transition-all cursor-pointer relative">
+      <button
+        onClick={onRemove}
+        className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
+        aria-label={`Remove ${packageName}`}
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={3}
+        >
+          <path
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+      <div className="flex justify-between items-start mb-4 gap-3 pr-8">
+        <a
+          href={npmUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+          style={{
+            fontSize: calculatePackageNameFontSize(packageName),
+            lineHeight: "1.2",
+          }}
+          title={packageName}
+        >
+          {packageName}
+        </a>
       </div>
 
       <div className="space-y-3">
