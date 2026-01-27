@@ -175,10 +175,10 @@ export function formatChangePercent(percent: number | null): string {
   }
   const sign = percent >= 0 ? "+" : ""
   const absPercent = Math.abs(percent)
-  
+
   let formatted: string
   let suffix = ""
-  
+
   if (absPercent >= 1000000) {
     // Format as millions
     const millions = absPercent / 1000000
@@ -193,6 +193,6 @@ export function formatChangePercent(percent: number | null): string {
     // Format normally
     formatted = toSignificantDigits(absPercent, 2)
   }
-  
+
   return `${sign}${formatted}${suffix}%`
 }

@@ -64,7 +64,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
             style={{
               fontSize: calculatePackageNameFontSize(packageName),
-              lineHeight: '1.2'
+              lineHeight: "1.2",
             }}
             title={packageName}
           >
@@ -106,7 +106,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
             style={{
               fontSize: calculatePackageNameFontSize(packageName),
-              lineHeight: '1.2'
+              lineHeight: "1.2",
             }}
             title={packageName}
           >
@@ -150,7 +150,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
           style={{
             fontSize: calculatePackageNameFontSize(packageName),
-            lineHeight: '1.2'
+            lineHeight: "1.2",
           }}
           title={packageName}
         >
