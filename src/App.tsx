@@ -6,15 +6,15 @@ import {
   getCacheTimestamp,
   CACHE_EXPIRY_MS,
 } from './services/npm-api';
-import type { PackageStats } from './types';
+import type { DeprecatedPackageStats } from './types';
 import { calculateChangePercent, calculateChange } from './utils/stats';
 import { PackageInput } from './components/PackageInput';
 import { PackageList } from './components/PackageList';
 
 function App() {
   const { packages, addPackage, removePackage } = useLocalStorage();
-  const [stats, setStats] = useState<PackageStats[]>([]);
-  const statsRef = useRef<PackageStats[]>([]);
+  const [stats, setStats] = useState<DeprecatedPackageStats[]>([]);
+  const statsRef = useRef<DeprecatedPackageStats[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {

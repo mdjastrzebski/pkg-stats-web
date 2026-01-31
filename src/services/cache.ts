@@ -1,4 +1,4 @@
-import type { PackageDownloadStats } from '../types';
+import type { PackageStats } from '../types';
 
 const CACHE_EXPIRY_HOURS = 6;
 export const CACHE_EXPIRY_MS = CACHE_EXPIRY_HOURS * 60 * 60 * 1000;
@@ -6,7 +6,7 @@ const CACHE_PREFIX = 'npm_stats_cache_';
 const CACHE_CLEANUP_PERCENTAGE = 0.5;
 
 export interface CachedStats {
-  data: PackageDownloadStats;
+  data: PackageStats;
   timestamp: number;
 }
 
@@ -14,9 +14,7 @@ function getCacheKey(packageName: string): string {
   return `${CACHE_PREFIX}${packageName}`;
 }
 
-function isValidPackageDownloadStats(
-  data: unknown,
-): data is PackageDownloadStats {
+function isValidPackageDownloadStats(data: unknown): data is PackageStats {
   if (!data || typeof data !== 'object') {
     return false;
   }

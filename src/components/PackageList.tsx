@@ -1,8 +1,8 @@
-import type { PackageStats } from '../types';
+import type { DeprecatedPackageStats } from '../types';
 import { PackageCard } from './PackageCard';
 
 interface PackageListProps {
-  packages: PackageStats[];
+  packages: DeprecatedPackageStats[];
   onRemove: (packageName: string) => void;
 }
 

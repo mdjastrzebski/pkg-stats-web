@@ -8,7 +8,7 @@ export interface DownloadData {
   package: string;
 }
 
-export interface PackageDownloadStats {
+export interface PackageStats {
   name: string;
   weeklyCurrent: number;
   weeklyPrevious: number;
@@ -18,7 +18,7 @@ export interface PackageDownloadStats {
   yearlyPrevious: number;
 }
 
-export interface PackageStats {
+export interface DeprecatedPackageStats {
   packageName: string;
   currentWeekDownloads: number | null;
   previousWeekDownloads: number | null;

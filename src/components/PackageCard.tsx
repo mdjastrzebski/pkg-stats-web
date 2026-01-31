@@ -1,4 +1,4 @@
-import type { PackageStats } from '../types';
+import type { DeprecatedPackageStats } from '../types';
 import {
   formatNumber,
   formatChangePercent,
@@ -6,7 +6,7 @@ import {
 } from '../utils/stats';
 
 interface PackageCardProps {
-  stats: PackageStats;
+  stats: DeprecatedPackageStats;
   onRemove: () => void;
 }
 

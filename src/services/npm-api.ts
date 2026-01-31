@@ -1,4 +1,4 @@
-import type { DownloadData, PackageDownloadStats } from '../types';
+import type { DownloadData, PackageStats } from '../types';
 import { FetchError } from '../types';
 import { TaskScheduler } from '../scheduler';
 import {
@@ -57,7 +57,7 @@ function getFullDataRange(): DateRange {
 function calculateStatsFromDailyData(
   packageName: string,
   dailyData: Array<{ downloads: number; day: string }>,
-): PackageDownloadStats {
+): PackageStats {
   const sorted = [...dailyData].sort((a, b) => a.day.localeCompare(b.day));
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
@@ -176,7 +176,7 @@ const PRIORITY_CURRENT = 40;
 export async function getPackageStats(
   packageName: string,
   forceRefresh: boolean = false,
-): Promise<PackageDownloadStats | null> {
+): Promise<PackageStats | null> {
   if (forceRefresh) {
     clearPackageCache(packageName);
   }
