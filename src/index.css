@@ -1,49 +1,49 @@
 @import "tailwindcss";
 
 * {
-  font-family: "Space Grotesk", sans-serif;
+	font-family: "Space Grotesk", sans-serif;
 }
 
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	overflow-x: hidden;
 }
 
 body {
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  /* Matches slate-950; avoids white bars on overscroll */
-  background-color: #020617;
+	font-weight: 500;
+	letter-spacing: -0.01em;
+	/* Matches slate-950; avoids white bars on overscroll */
+	background-color: #020617;
 }
 
 #root {
-  width: 100%;
-  min-height: 100vh;
-  /* Respect device safe areas (notches, home indicator) */
-  padding-left: env(safe-area-inset-left, 0);
-  padding-right: env(safe-area-inset-right, 0);
+	width: 100%;
+	min-height: 100vh;
+	/* Respect device safe areas (notches, home indicator) */
+	padding-left: env(safe-area-inset-left, 0);
+	padding-right: env(safe-area-inset-right, 0);
 }
 
 .text-xs,
 .text-sm,
 input,
 button {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial,
-    sans-serif;
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial,
+		sans-serif;
 }
 
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
 }
