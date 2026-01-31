@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 * {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
 }
 
 html,
@@ -31,7 +31,9 @@ body {
 .text-sm,
 input,
 button {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
 }
 
 .sr-only {

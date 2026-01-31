@@ -1,15 +1,15 @@
-import { useState, type FormEvent, useEffect, useRef } from "react"
-import { validatePackageName } from "../utils/stats"
-import { useAutocomplete } from "../hooks/use-autocomplete"
+import { useState, type FormEvent, useEffect, useRef } from 'react';
+import { validatePackageName } from '../utils/stats';
+import { useAutocomplete } from '../hooks/use-autocomplete';
 
 interface PackageInputProps {
-  onAdd: (packageName: string) => void
-  isLoading?: boolean
+  onAdd: (packageName: string) => void;
+  isLoading?: boolean;
 }
 
 export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
-  const [error, setError] = useState<string | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const {
     query,
@@ -23,14 +23,14 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
     close,
   } = useAutocomplete({
     onSelect: (value) => {
-      const validation = validatePackageName(value)
+      const validation = validatePackageName(value);
       if (validation.valid) {
-        setError(null)
-        onAdd(value)
-        updateQuery("")
+        setError(null);
+        onAdd(value);
+        updateQuery('');
       }
     },
-  })
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,33 +38,33 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        close()
+        close();
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside);
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside)
-      }
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
-  }, [isOpen, close])
+  }, [isOpen, close]);
 
   const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    const trimmed = query.trim()
+    e.preventDefault();
+    const trimmed = query.trim();
 
-    const validation = validatePackageName(trimmed)
+    const validation = validatePackageName(trimmed);
     if (!validation.valid) {
-      setError(validation.error || "Invalid package name")
-      return
+      setError(validation.error || 'Invalid package name');
+      return;
     }
 
-    setError(null)
-    onAdd(trimmed)
-    updateQuery("")
-    close()
-  }
+    setError(null);
+    onAdd(trimmed);
+    updateQuery('');
+    close();
+  };
 
   return (
     <div ref={containerRef} className="w-full max-w-2xl mx-auto relative">
@@ -75,8 +75,8 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
               type="text"
               value={query}
               onChange={(e) => {
-                updateQuery(e.target.value)
-                setError(null)
+                updateQuery(e.target.value);
+                setError(null);
               }}
               onKeyDown={handleKeyDown}
               placeholder="Enter NPM package name"
@@ -88,7 +88,7 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
               autoComplete="off"
               aria-label="NPM package name input"
               aria-invalid={error !== null}
-              aria-describedby={error ? "package-input-error" : undefined}
+              aria-describedby={error ? 'package-input-error' : undefined}
               aria-autocomplete="list"
               aria-expanded={isOpen}
               aria-controls="package-suggestions"
@@ -108,10 +108,10 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
                     onClick={() => selectSuggestion(suggestion)}
                     className={`w-full text-left px-4 py-3 hover:bg-slate-700/50 transition-colors ${
                       index === selectedIndex
-                        ? "bg-violet-500/20 border-l-4 border-violet-500"
-                        : ""
-                    } ${index === 0 ? "rounded-t-lg" : ""} ${
-                      index === suggestions.length - 1 ? "rounded-b-lg" : ""
+                        ? 'bg-violet-500/20 border-l-4 border-violet-500'
+                        : ''
+                    } ${index === 0 ? 'rounded-t-lg' : ''} ${
+                      index === suggestions.length - 1 ? 'rounded-b-lg' : ''
                     }`}
                   >
                     <div className="text-slate-100 font-medium text-base">
@@ -172,5 +172,5 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
         </p>
       )}
     </div>
-  )
+  );
 }

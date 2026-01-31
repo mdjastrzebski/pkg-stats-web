@@ -1,55 +1,55 @@
-const MAX_PACKAGE_NAME_LENGTH = 214
+const MAX_PACKAGE_NAME_LENGTH = 214;
 
 export interface ValidationResult {
-  valid: boolean
-  error?: string
+  valid: boolean;
+  error?: string;
 }
 
 export function validatePackageName(packageName: string): ValidationResult {
-  const trimmed = packageName.trim()
+  const trimmed = packageName.trim();
 
   if (!trimmed) {
-    return { valid: false, error: "Please enter a package name" }
+    return { valid: false, error: 'Please enter a package name' };
   }
 
   if (trimmed.length > MAX_PACKAGE_NAME_LENGTH) {
     return {
       valid: false,
       error: `Package name is too long (maximum ${MAX_PACKAGE_NAME_LENGTH} characters)`,
-    }
+    };
   }
 
-  const scopedPattern = /^@[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9._-]*$/
-  const unscopedPattern = /^[a-z0-9][a-z0-9._-]*$/
+  const scopedPattern = /^@[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9._-]*$/;
+  const unscopedPattern = /^[a-z0-9][a-z0-9._-]*$/;
 
-  if (trimmed.startsWith("@")) {
+  if (trimmed.startsWith('@')) {
     if (!scopedPattern.test(trimmed)) {
       return {
         valid: false,
-        error: "Invalid scoped package name format. Use: @scope/package-name",
-      }
+        error: 'Invalid scoped package name format. Use: @scope/package-name',
+      };
     }
   } else {
     if (!unscopedPattern.test(trimmed)) {
       return {
         valid: false,
         error:
-          "Invalid package name. Use only lowercase letters, numbers, hyphens, dots, and underscores",
-      }
+          'Invalid package name. Use only lowercase letters, numbers, hyphens, dots, and underscores',
+      };
     }
   }
 
   if (
-    !trimmed.startsWith("@") &&
-    (trimmed.startsWith(".") || trimmed.startsWith("_"))
+    !trimmed.startsWith('@') &&
+    (trimmed.startsWith('.') || trimmed.startsWith('_'))
   ) {
     return {
       valid: false,
-      error: "Package name cannot start with a dot or underscore",
-    }
+      error: 'Package name cannot start with a dot or underscore',
+    };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 export function calculateChangePercent(
@@ -57,44 +57,44 @@ export function calculateChangePercent(
   previous: number | null,
 ): number | null {
   if (current === null || previous === null) {
-    return null
+    return null;
   }
   if (previous === 0) {
-    return null
+    return null;
   }
-  return ((current - previous) / previous) * 100
+  return ((current - previous) / previous) * 100;
 }
 
 export function formatNumber(num: number | null): string {
   if (num === null) {
-    return "-"
+    return '-';
   }
 
   if (num === 0) {
-    return "0"
+    return '0';
   }
 
-  const rounded = parseFloat(toSignificantDigits(num, 3))
-  return new Intl.NumberFormat("en-US").format(rounded)
+  const rounded = parseFloat(toSignificantDigits(num, 3));
+  return new Intl.NumberFormat('en-US').format(rounded);
 }
 
 function toSignificantDigits(num: number, digits: number): string {
   if (num === 0) {
-    return "0"
+    return '0';
   }
 
-  const precision = num.toPrecision(digits)
+  const precision = num.toPrecision(digits);
 
-  if (precision.includes("e")) {
-    const numValue = parseFloat(precision)
+  if (precision.includes('e')) {
+    const numValue = parseFloat(precision);
     if (Math.abs(numValue) < 0.001) {
-      return numValue.toExponential(2)
+      return numValue.toExponential(2);
     }
-    return numValue.toString()
+    return numValue.toString();
   }
 
-  const numValue = parseFloat(precision)
-  return numValue.toString()
+  const numValue = parseFloat(precision);
+  return numValue.toString();
 }
 
 export function calculateChange(
@@ -102,9 +102,9 @@ export function calculateChange(
   previous: number | null,
 ): number | null {
   if (current === null || previous === null) {
-    return null
+    return null;
   }
-  return current - previous
+  return current - previous;
 }
 
 export function calculatePackageNameFontSize(
@@ -115,36 +115,36 @@ export function calculatePackageNameFontSize(
   minSize: number = 0.875,
 ): string {
   if (packageName.length <= threshold) {
-    return `${baseSize}rem`
+    return `${baseSize}rem`;
   }
   const scaledSize = Math.max(
     minSize,
     baseSize - (packageName.length - threshold) * scaleFactor,
-  )
-  return `${scaledSize}rem`
+  );
+  return `${scaledSize}rem`;
 }
 
 export function formatChangePercent(percent: number | null): string {
   if (percent === null) {
-    return "-"
+    return '-';
   }
-  const sign = percent >= 0 ? "+" : "-"
-  const absPercent = Math.abs(percent)
+  const sign = percent >= 0 ? '+' : '-';
+  const absPercent = Math.abs(percent);
 
-  let formatted: string
-  let suffix = ""
+  let formatted: string;
+  let suffix = '';
 
   if (absPercent >= 1000000) {
-    const millions = absPercent / 1000000
-    formatted = toSignificantDigits(millions, 2)
-    suffix = "M"
+    const millions = absPercent / 1000000;
+    formatted = toSignificantDigits(millions, 2);
+    suffix = 'M';
   } else if (absPercent >= 1000) {
-    const thousands = absPercent / 1000
-    formatted = toSignificantDigits(thousands, 2)
-    suffix = "k"
+    const thousands = absPercent / 1000;
+    formatted = toSignificantDigits(thousands, 2);
+    suffix = 'k';
   } else {
-    formatted = toSignificantDigits(absPercent, 2)
+    formatted = toSignificantDigits(absPercent, 2);
   }
 
-  return `${sign}${formatted}${suffix}%`
+  return `${sign}${formatted}${suffix}%`;
 }

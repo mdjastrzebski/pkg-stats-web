@@ -1,13 +1,13 @@
-import type { PackageStats } from "../types"
+import type { PackageStats } from '../types';
 import {
   formatNumber,
   formatChangePercent,
   calculatePackageNameFontSize,
-} from "../utils/stats"
+} from '../utils/stats';
 
 interface PackageCardProps {
-  stats: PackageStats
-  onRemove: () => void
+  stats: PackageStats;
+  onRemove: () => void;
 }
 
 export function PackageCard({ stats, onRemove }: PackageCardProps) {
@@ -19,20 +19,20 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
     yearChangePercent,
     isLoading,
     error,
-  } = stats
+  } = stats;
 
   const getChangeColor = (percent: number | null): string => {
     if (percent === null) {
-      return "text-slate-400"
+      return 'text-slate-400';
     }
-    return percent >= 0 ? "text-green-400" : "text-rose-400"
-  }
+    return percent >= 0 ? 'text-green-400' : 'text-rose-400';
+  };
 
-  const changeColor = getChangeColor(changePercent)
-  const monthChangeColor = getChangeColor(monthChangePercent)
-  const yearChangeColor = getChangeColor(yearChangePercent)
+  const changeColor = getChangeColor(changePercent);
+  const monthChangeColor = getChangeColor(monthChangePercent);
+  const yearChangeColor = getChangeColor(yearChangePercent);
 
-  const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`
+  const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   if (error) {
     return (
@@ -64,7 +64,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
             style={{
               fontSize: calculatePackageNameFontSize(packageName),
-              lineHeight: "1.2",
+              lineHeight: '1.2',
             }}
             title={packageName}
           >
@@ -73,7 +73,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
         </div>
         <p className="text-red-400">{error}</p>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
@@ -106,7 +106,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
             className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
             style={{
               fontSize: calculatePackageNameFontSize(packageName),
-              lineHeight: "1.2",
+              lineHeight: '1.2',
             }}
             title={packageName}
           >
@@ -118,7 +118,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           <div className="h-6 bg-slate-700/50 w-1/2 rounded-lg"></div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -150,7 +150,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
           className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
           style={{
             fontSize: calculatePackageNameFontSize(packageName),
-            lineHeight: "1.2",
+            lineHeight: '1.2',
           }}
           title={packageName}
         >
@@ -196,5 +196,5 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
