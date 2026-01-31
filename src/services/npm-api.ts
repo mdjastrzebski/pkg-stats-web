@@ -1,19 +1,24 @@
-import type { DownloadData } from '../types';
+import type { DownloadData } from "../types";
+import { FetchError } from "../types";
+import { TaskScheduler } from "../scheduler";
 
 const API_BASE =
   import.meta.env.VITE_NPM_API_BASE_URL ||
-  'https://api.npmjs.org/downloads/range';
+  "https://api.npmjs.org/downloads/range";
 const SEARCH_API_BASE =
   import.meta.env.VITE_NPM_SEARCH_API_BASE_URL ||
-  'https://registry.npmjs.org/-/v1/search';
+  "https://registry.npmjs.org/-/v1/search";
 
 const CACHE_EXPIRY_HOURS = 6;
 const CACHE_EXPIRY_MS = CACHE_EXPIRY_HOURS * 60 * 60 * 1000;
-const CACHE_PREFIX = 'npm_stats_cache_';
+const CACHE_PREFIX = "npm_stats_cache_";
 const CACHE_CLEANUP_PERCENTAGE = 0.5;
 
 const MAX_CONCURRENT_REQUESTS = 6;
-const REQUEST_DELAY_MS = 100;
+
+const scheduler = new TaskScheduler({
+  maxConcurrent: MAX_CONCURRENT_REQUESTS,
+});
 
 const DAYS_PER_WEEK = 7;
 const DAYS_PER_MONTH = 30;
@@ -22,42 +27,16 @@ const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1;
 const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1;
 const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1;
 
-let activeRequests = 0;
-const requestQueue: Array<() => Promise<void>> = [];
-
 export interface DateRange {
   start: string;
   end: string;
 }
 
-async function throttledFetch<T>(fn: () => Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const executeRequest = async () => {
-      activeRequests++;
-      try {
-        const result = await fn();
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      } finally {
-        activeRequests--;
-        if (requestQueue.length > 0) {
-          const nextRequest = requestQueue.shift();
-          if (nextRequest) {
-            setTimeout(() => {
-              nextRequest();
-            }, REQUEST_DELAY_MS);
-          }
-        }
-      }
-    };
-
-    if (activeRequests < MAX_CONCURRENT_REQUESTS) {
-      executeRequest();
-    } else {
-      requestQueue.push(executeRequest);
-    }
-  });
+async function throttledFetch<T>(
+  fn: () => Promise<T>,
+  priority: number = 0,
+): Promise<T> {
+  return scheduler.schedule(fn, { priority });
 }
 
 interface CachedStats {
@@ -79,8 +58,8 @@ function getLast7DaysRange(): DateRange {
   start.setDate(start.getDate() - DAYS_OFFSET_WEEK);
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
   };
 }
 
@@ -91,8 +70,8 @@ function getPrevious7DaysRange(): DateRange {
   start.setDate(start.getDate() - DAYS_OFFSET_WEEK);
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
   };
 }
 
@@ -103,8 +82,8 @@ function getLast30DaysRange(): DateRange {
   start.setDate(start.getDate() - DAYS_OFFSET_MONTH);
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
   };
 }
 
@@ -115,8 +94,8 @@ function getPrevious30DaysRange(): DateRange {
   start.setDate(start.getDate() - DAYS_OFFSET_MONTH);
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
   };
 }
 
@@ -127,8 +106,8 @@ function getLast365DaysRange(): DateRange {
   start.setDate(start.getDate() - DAYS_OFFSET_YEAR);
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
   };
 }
 
@@ -139,8 +118,8 @@ function getPrevious365DaysRange(): DateRange {
   start.setDate(start.getDate() - DAYS_OFFSET_YEAR);
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
   };
 }
 
@@ -160,14 +139,14 @@ function getCachedStatsWithValidity(packageName: string): CachedStats | null {
     const cachedStats: CachedStats = JSON.parse(cached);
     return cachedStats;
   } catch (error) {
-    console.warn('Error reading cache:', error);
+    console.warn("Error reading cache:", error);
     return null;
   }
 }
 
 function setCachedStats(
   packageName: string,
-  data: CachedStats['data'],
+  data: CachedStats["data"],
   timestamp?: number,
 ): void {
   const cacheKey = getCacheKey(packageName);
@@ -179,9 +158,9 @@ function setCachedStats(
   try {
     localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+    if (error instanceof DOMException && error.name === "QuotaExceededError") {
       console.warn(
-        'LocalStorage quota exceeded. Clearing old cache entries...',
+        "LocalStorage quota exceeded. Clearing old cache entries...",
       );
       try {
         const keys = Object.keys(localStorage);
@@ -210,13 +189,13 @@ function setCachedStats(
         try {
           localStorage.setItem(cacheKey, JSON.stringify(cachedStats));
         } catch (retryError) {
-          console.warn('Failed to cache after cleanup:', retryError);
+          console.warn("Failed to cache after cleanup:", retryError);
         }
       } catch (cleanupError) {
-        console.warn('Failed to cleanup cache:', cleanupError);
+        console.warn("Failed to cleanup cache:", cleanupError);
       }
     } else {
-      console.warn('Error writing to cache:', error);
+      console.warn("Error writing to cache:", error);
     }
   }
 }
@@ -225,6 +204,7 @@ async function fetchDownloads(
   packageName: string,
   start: string,
   end: string,
+  priority: number = 0,
 ): Promise<DownloadData> {
   return throttledFetch(async () => {
     const url = `${API_BASE}/${start}:${end}/${packageName}`;
@@ -235,27 +215,35 @@ async function fetchDownloads(
       const statusText = response.statusText;
 
       if (status === 404) {
-        throw new Error(
+        throw new FetchError(
           `Package "${packageName}" not found. Please check the package name and try again.`,
+          status,
+          response,
         );
       }
       if (status === 429) {
-        throw new Error(
+        throw new FetchError(
           `Rate limit exceeded (HTTP ${status}). The NPM API has rate limits. Please wait a moment and try again.`,
+          status,
+          response,
         );
       }
       if (status >= 500) {
-        throw new Error(
+        throw new FetchError(
           `NPM API server error (HTTP ${status} ${statusText}). The service may be temporarily unavailable. Please try again later.`,
+          status,
+          response,
         );
       }
-      throw new Error(
+      throw new FetchError(
         `Failed to fetch download statistics for "${packageName}" (HTTP ${status} ${statusText}). Please try again later.`,
+        status,
+        response,
       );
     }
 
     return response.json();
-  });
+  }, priority);
 }
 
 export function clearPackageCache(packageName: string): void {
@@ -263,7 +251,7 @@ export function clearPackageCache(packageName: string): void {
     const cacheKey = getCacheKey(packageName);
     localStorage.removeItem(cacheKey);
   } catch (error) {
-    console.warn('Error clearing cache:', error);
+    console.warn("Error clearing cache:", error);
   }
 }
 
@@ -276,7 +264,7 @@ export function clearAllCache(): void {
       }
     });
   } catch (error) {
-    console.warn('Error clearing all cache:', error);
+    console.warn("Error clearing all cache:", error);
   }
 }
 
@@ -284,19 +272,25 @@ async function fetchDownloadsSafely(
   packageName: string,
   start: string,
   end: string,
+  priority: number = 0,
 ): Promise<number | null> {
   try {
-    const data = await fetchDownloads(packageName, start, end);
+    const data = await fetchDownloads(packageName, start, end, priority);
     return data.downloads.reduce((sum, day) => sum + day.downloads, 0);
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error';
+      error instanceof Error ? error.message : "Unknown error";
     console.warn(
       `Failed to fetch downloads for "${packageName}" (${start} to ${end}): ${errorMessage}`,
     );
     return null;
   }
 }
+
+const PRIORITY_CURRENT = 40;
+const PRIORITY_PREV_WEEK = 30;
+const PRIORITY_PREV_MONTH = 20;
+const PRIORITY_PREV_YEAR = 10;
 
 export async function getPackageStats(
   packageName: string,
@@ -358,6 +352,7 @@ export async function getPackageStats(
             packageName,
             currentWeekRange.start,
             currentWeekRange.end,
+            PRIORITY_CURRENT,
           ),
       cachedStats.previousWeekDownloads !== null
         ? Promise.resolve(cachedStats.previousWeekDownloads)
@@ -365,6 +360,7 @@ export async function getPackageStats(
             packageName,
             previousWeekRange.start,
             previousWeekRange.end,
+            PRIORITY_PREV_WEEK,
           ),
       cachedStats.currentMonthDownloads !== null
         ? Promise.resolve(cachedStats.currentMonthDownloads)
@@ -372,6 +368,7 @@ export async function getPackageStats(
             packageName,
             currentMonthRange.start,
             currentMonthRange.end,
+            PRIORITY_CURRENT,
           ),
       cachedStats.previousMonthDownloads !== null
         ? Promise.resolve(cachedStats.previousMonthDownloads)
@@ -379,6 +376,7 @@ export async function getPackageStats(
             packageName,
             previousMonthRange.start,
             previousMonthRange.end,
+            PRIORITY_PREV_MONTH,
           ),
       cachedStats.currentYearDownloads !== null
         ? Promise.resolve(cachedStats.currentYearDownloads)
@@ -386,6 +384,7 @@ export async function getPackageStats(
             packageName,
             currentYearRange.start,
             currentYearRange.end,
+            PRIORITY_CURRENT,
           ),
       cachedStats.previousYearDownloads !== null
         ? Promise.resolve(cachedStats.previousYearDownloads)
@@ -393,6 +392,7 @@ export async function getPackageStats(
             packageName,
             previousYearRange.start,
             previousYearRange.end,
+            PRIORITY_PREV_YEAR,
           ),
     ];
 
@@ -442,31 +442,37 @@ export async function getPackageStats(
       packageName,
       currentWeekRange.start,
       currentWeekRange.end,
+      PRIORITY_CURRENT,
     ),
     fetchDownloadsSafely(
       packageName,
       previousWeekRange.start,
       previousWeekRange.end,
+      PRIORITY_PREV_WEEK,
     ),
     fetchDownloadsSafely(
       packageName,
       currentMonthRange.start,
       currentMonthRange.end,
+      PRIORITY_CURRENT,
     ),
     fetchDownloadsSafely(
       packageName,
       previousMonthRange.start,
       previousMonthRange.end,
+      PRIORITY_PREV_MONTH,
     ),
     fetchDownloadsSafely(
       packageName,
       currentYearRange.start,
       currentYearRange.end,
+      PRIORITY_CURRENT,
     ),
     fetchDownloadsSafely(
       packageName,
       previousYearRange.start,
       previousYearRange.end,
+      PRIORITY_PREV_YEAR,
     ),
   ]);
 
@@ -519,7 +525,9 @@ export async function searchPackages(
   }
 
   return throttledFetch(async () => {
-    const url = `${SEARCH_API_BASE}?text=${encodeURIComponent(query)}&size=${limit}`;
+    const url = `${SEARCH_API_BASE}?text=${encodeURIComponent(
+      query,
+    )}&size=${limit}`;
     const response = await fetch(url);
 
     if (!response.ok) {
