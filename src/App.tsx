@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocalStorage } from './hooks/use-local-storage';
-import { getPackageStats, clearAllCache } from './services/npm-api';
+import {
+	getPackageStats,
+	clearAllCache,
+	getCacheTimestamp,
+	CACHE_EXPIRY_MS,
+} from './services/npm-api';
 import type { PackageStats } from './types';
 import { calculateChangePercent, calculateChange } from './utils/stats';
 import { PackageInput } from './components/PackageInput';
@@ -19,38 +24,72 @@ function App() {
 	const fetchAllStats = useCallback(
 		async (forceRefresh: boolean = false) => {
 			const statsPromises = packages.map(async (packageName) => {
+				// Check if cache exists and determine staleness
+				const cacheTimestamp = getCacheTimestamp(packageName);
+				const isStale = cacheTimestamp
+					? Date.now() - cacheTimestamp > CACHE_EXPIRY_MS
+					: false;
+
 				if (!forceRefresh) {
 					const existing = statsRef.current.find(
 						(s) => s.packageName === packageName,
 					);
+					// If data exists and not loading and no error, return it with staleness flag
 					if (existing && !existing.isLoading && !existing.error) {
+						if (isStale) {
+							// Mark as stale and trigger background refresh
+							return { ...existing, isStale: true };
+						}
 						return existing;
 					}
 				}
 
-				setStats((prev) => {
-					const filtered = prev.filter((s) => s.packageName !== packageName);
-					return [
-						...filtered,
-						{
-							packageName,
-							currentWeekDownloads: null,
-							previousWeekDownloads: null,
-							change: null,
-							changePercent: null,
-							currentMonthDownloads: null,
-							previousMonthDownloads: null,
-							monthChange: null,
-							monthChangePercent: null,
-							currentYearDownloads: null,
-							previousYearDownloads: null,
-							yearChange: null,
-							yearChangePercent: null,
-							isLoading: true,
-							error: null,
-						},
-					];
-				});
+				// Get existing data to preserve it during loading
+				const existing = statsRef.current.find(
+					(s) => s.packageName === packageName,
+				);
+				const hasExistingData = existing?.currentWeekDownloads !== null;
+
+				// If we have existing data, mark as loading but keep the data
+				if (hasExistingData && existing) {
+					setStats((prev) => {
+						const filtered = prev.filter((s) => s.packageName !== packageName);
+						return [
+							...filtered,
+							{
+								...existing,
+								isLoading: true,
+								isStale: true,
+							},
+						];
+					});
+				} else {
+					// No existing data, show skeleton
+					setStats((prev) => {
+						const filtered = prev.filter((s) => s.packageName !== packageName);
+						return [
+							...filtered,
+							{
+								packageName,
+								currentWeekDownloads: null,
+								previousWeekDownloads: null,
+								change: null,
+								changePercent: null,
+								currentMonthDownloads: null,
+								previousMonthDownloads: null,
+								monthChange: null,
+								monthChangePercent: null,
+								currentYearDownloads: null,
+								previousYearDownloads: null,
+								yearChange: null,
+								yearChangePercent: null,
+								isLoading: true,
+								isStale: false,
+								error: null,
+							},
+						];
+					});
+				}
 
 				try {
 					const data = await getPackageStats(packageName, forceRefresh);
@@ -91,9 +130,21 @@ function App() {
 						),
 						yearChangePercent,
 						isLoading: false,
+						isStale: false,
 						error: null,
 					};
 				} catch (error) {
+					// On error, preserve existing data if available
+					if (hasExistingData && existing) {
+						return {
+							...existing,
+							isLoading: false,
+							error:
+								error instanceof Error
+									? error.message
+									: 'Failed to fetch stats',
+						};
+					}
 					return {
 						packageName,
 						currentWeekDownloads: null,
@@ -109,6 +160,7 @@ function App() {
 						yearChange: null,
 						yearChangePercent: null,
 						isLoading: false,
+						isStale: false,
 						error:
 							error instanceof Error ? error.message : 'Failed to fetch stats',
 					};
@@ -162,6 +214,7 @@ function App() {
 					yearChange: null,
 					yearChangePercent: null,
 					isLoading: true,
+					isStale: false,
 					error: null,
 				},
 			];

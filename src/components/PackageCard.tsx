@@ -18,6 +18,7 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 		monthChangePercent,
 		yearChangePercent,
 		isLoading,
+		isStale,
 		error,
 	} = stats;
 
@@ -76,7 +77,8 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 		);
 	}
 
-	if (isLoading) {
+	// Show skeleton only when loading AND no existing data
+	if (isLoading && !currentWeekDownloads) {
 		return (
 			<div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg relative">
 				<button
@@ -122,7 +124,11 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 	}
 
 	return (
-		<div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-violet-500/50 hover:bg-slate-800/90 transition-all cursor-pointer relative">
+		<div
+			className={`bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-violet-500/50 hover:bg-slate-800/90 transition-all cursor-pointer relative ${
+				isStale ? 'opacity-75' : ''
+			}`}
+		>
 			<button
 				onClick={onRemove}
 				className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
@@ -156,6 +162,24 @@ export function PackageCard({ stats, onRemove }: PackageCardProps) {
 				>
 					{packageName}
 				</a>
+				{isStale && (
+					<div className="flex items-center gap-1 text-xs text-amber-400/80 flex-shrink-0">
+						<svg
+							className="w-3 h-3 animate-spin"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							strokeWidth={3}
+						>
+							<path
+								strokeLinecap="square"
+								strokeLinejoin="miter"
+								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+							/>
+						</svg>
+						<span>Refreshing...</span>
+					</div>
+				)}
 			</div>
 
 			<div className="space-y-3">

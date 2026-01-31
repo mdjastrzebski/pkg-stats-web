@@ -23,6 +23,7 @@ export interface PackageStats {
 	yearChange: number | null;
 	yearChangePercent: number | null;
 	isLoading: boolean;
+	isStale: boolean;
 	error: string | null;
 }
 
