@@ -22,10 +22,8 @@ export function useAutocomplete({
   const debounceTimerRef = useRef<number | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  // Debounced search function
   const performSearch = useCallback(
     async (searchQuery: string) => {
-      // Cancel previous request if any
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
@@ -40,12 +38,10 @@ export function useAutocomplete({
       setIsLoading(true)
       setIsOpen(true)
 
-      // Create new abort controller for this request
       abortControllerRef.current = new AbortController()
 
       try {
         const results = await searchPackages(searchQuery, maxResults)
-        // Only update if we haven't been aborted
         if (!abortControllerRef.current.signal.aborted) {
           setSuggestions(results)
           setSelectedIndex(-1)
@@ -70,20 +66,16 @@ export function useAutocomplete({
     [minQueryLength, maxResults],
   )
 
-  // Update query and trigger debounced search
   const updateQuery = useCallback(
     (newQuery: string) => {
       setQuery(newQuery)
 
-      // Clear previous debounce timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
       }
 
-      // Reset selected index when query changes
       setSelectedIndex(-1)
 
-      // If query is too short, clear suggestions immediately
       if (newQuery.trim().length < minQueryLength) {
         setSuggestions([])
         setIsOpen(false)
@@ -91,10 +83,8 @@ export function useAutocomplete({
         return
       }
 
-      // Set loading state immediately for better UX
       setIsLoading(true)
 
-      // Debounce the actual search
       debounceTimerRef.current = window.setTimeout(() => {
         performSearch(newQuery)
       }, debounceMs)
@@ -102,7 +92,6 @@ export function useAutocomplete({
     [debounceMs, minQueryLength, performSearch],
   )
 
-  // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen || suggestions.length === 0) {
@@ -141,7 +130,6 @@ export function useAutocomplete({
     [isOpen, suggestions, selectedIndex, onSelect],
   )
 
-  // Select a suggestion
   const selectSuggestion = useCallback(
     (suggestion: PackageSearchResult) => {
       setQuery(suggestion.name)
@@ -153,13 +141,11 @@ export function useAutocomplete({
     [onSelect],
   )
 
-  // Close autocomplete when clicking outside
   const close = useCallback(() => {
     setIsOpen(false)
     setSelectedIndex(-1)
   }, [])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current !== null) {

@@ -12,18 +12,14 @@ function App() {
   const statsRef = useRef<PackageStats[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Update ref whenever stats change
   useEffect(() => {
     statsRef.current = stats
   }, [stats])
 
-  // Fetch stats for all packages
   const fetchAllStats = useCallback(
     async (forceRefresh: boolean = false) => {
       const statsPromises = packages.map(async (packageName) => {
-        // If force refresh, skip existing stats check
         if (!forceRefresh) {
-          // Check if stats already exist and are valid
           const existing = statsRef.current.find(
             (s) => s.packageName === packageName,
           )
@@ -32,7 +28,6 @@ function App() {
           }
         }
 
-        // Set loading state
         setStats((prev) => {
           const filtered = prev.filter((s) => s.packageName !== packageName)
           return [
@@ -121,8 +116,6 @@ function App() {
       })
 
       const results = await Promise.all(statsPromises)
-      // Sort by currentWeekDownloads descending (highest to lowest)
-      // Treat null as 0 for sorting purposes
       const sortedResults = results.sort((a, b) => {
         const aVal = a.currentWeekDownloads ?? 0
         const bVal = b.currentWeekDownloads ?? 0
@@ -148,9 +141,7 @@ function App() {
 
   const handleAddPackage = (packageName: string) => {
     addPackage(packageName)
-    // Immediately set loading state for the new package
     setStats((prev) => {
-      // Check if package already exists
       if (prev.some((s) => s.packageName === packageName.toLowerCase())) {
         return prev
       }

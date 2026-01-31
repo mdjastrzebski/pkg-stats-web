@@ -1,6 +1,5 @@
 import type { DownloadData } from "../types"
 
-// API Configuration
 const API_BASE =
   import.meta.env.VITE_NPM_API_BASE_URL ||
   "https://api.npmjs.org/downloads/range"
@@ -8,25 +7,21 @@ const SEARCH_API_BASE =
   import.meta.env.VITE_NPM_SEARCH_API_BASE_URL ||
   "https://registry.npmjs.org/-/v1/search"
 
-// Cache Configuration
 const CACHE_EXPIRY_HOURS = 6
-const CACHE_EXPIRY_MS = CACHE_EXPIRY_HOURS * 60 * 60 * 1000 // 6 hours in milliseconds
+const CACHE_EXPIRY_MS = CACHE_EXPIRY_HOURS * 60 * 60 * 1000
 const CACHE_PREFIX = "npm_stats_cache_"
-const CACHE_CLEANUP_PERCENTAGE = 0.5 // Remove 50% of oldest entries when quota exceeded
+const CACHE_CLEANUP_PERCENTAGE = 0.5
 
-// Rate Limiting Configuration
-const MAX_CONCURRENT_REQUESTS = 6 // Limit concurrent API requests
-const REQUEST_DELAY_MS = 100 // Delay between request batches (ms)
+const MAX_CONCURRENT_REQUESTS = 6
+const REQUEST_DELAY_MS = 100
 
-// Date Range Constants
 const DAYS_PER_WEEK = 7
 const DAYS_PER_MONTH = 30
 const DAYS_PER_YEAR = 365
-const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1 // 6 days ago for 7-day range
-const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1 // 29 days ago for 30-day range
-const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1 // 364 days ago for 365-day range
+const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1
+const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1
+const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1
 
-// Request queue management
 let activeRequests = 0
 const requestQueue: Array<() => Promise<void>> = []
 
@@ -35,9 +30,6 @@ export interface DateRange {
   end: string
 }
 
-/**
- * Throttle API requests to avoid overwhelming the NPM API
- */
 async function throttledFetch<T>(fn: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     const executeRequest = async () => {
@@ -49,11 +41,9 @@ async function throttledFetch<T>(fn: () => Promise<T>): Promise<T> {
         reject(error)
       } finally {
         activeRequests--
-        // Process next request in queue
         if (requestQueue.length > 0) {
           const nextRequest = requestQueue.shift()
           if (nextRequest) {
-            // Add small delay between batches
             setTimeout(() => {
               nextRequest()
             }, REQUEST_DELAY_MS)
@@ -82,14 +72,11 @@ interface CachedStats {
   timestamp: number
 }
 
-/**
- * Get the date range for the last 7 days (excluding today)
- */
 function getLast7DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - 1) // Yesterday (exclude today)
+  end.setDate(end.getDate() - 1)
   const start = new Date(end)
-  start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // 6 days before yesterday (7 days total)
+  start.setDate(start.getDate() - DAYS_OFFSET_WEEK)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -97,14 +84,11 @@ function getLast7DaysRange(): DateRange {
   }
 }
 
-/**
- * Get the date range for the previous 7 days (ending one day before current period starts)
- */
 function getPrevious7DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - 1 - DAYS_PER_WEEK) // 8 days ago (one day before current starts)
+  end.setDate(end.getDate() - 1 - DAYS_PER_WEEK)
   const start = new Date(end)
-  start.setDate(start.getDate() - DAYS_OFFSET_WEEK) // 6 days before that (7 days total)
+  start.setDate(start.getDate() - DAYS_OFFSET_WEEK)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -112,14 +96,11 @@ function getPrevious7DaysRange(): DateRange {
   }
 }
 
-/**
- * Get the date range for the last 30 days (excluding today)
- */
 function getLast30DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - 1) // Yesterday (exclude today)
+  end.setDate(end.getDate() - 1)
   const start = new Date(end)
-  start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // 29 days before yesterday (30 days total)
+  start.setDate(start.getDate() - DAYS_OFFSET_MONTH)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -127,14 +108,11 @@ function getLast30DaysRange(): DateRange {
   }
 }
 
-/**
- * Get the date range for the previous 30 days (ending one day before current period starts)
- */
 function getPrevious30DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - 1 - DAYS_PER_MONTH) // 31 days ago (one day before current starts)
+  end.setDate(end.getDate() - 1 - DAYS_PER_MONTH)
   const start = new Date(end)
-  start.setDate(start.getDate() - DAYS_OFFSET_MONTH) // 29 days before that (30 days total)
+  start.setDate(start.getDate() - DAYS_OFFSET_MONTH)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -142,14 +120,11 @@ function getPrevious30DaysRange(): DateRange {
   }
 }
 
-/**
- * Get the date range for the last 365 days (excluding today)
- */
 function getLast365DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - 1) // Yesterday (exclude today)
+  end.setDate(end.getDate() - 1)
   const start = new Date(end)
-  start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // 364 days before yesterday (365 days total)
+  start.setDate(start.getDate() - DAYS_OFFSET_YEAR)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -157,14 +132,11 @@ function getLast365DaysRange(): DateRange {
   }
 }
 
-/**
- * Get the date range for the previous 365 days (ending one day before current period starts)
- */
 function getPrevious365DaysRange(): DateRange {
   const end = new Date()
-  end.setDate(end.getDate() - 1 - DAYS_PER_YEAR) // 366 days ago (one day before current starts)
+  end.setDate(end.getDate() - 1 - DAYS_PER_YEAR)
   const start = new Date(end)
-  start.setDate(start.getDate() - DAYS_OFFSET_YEAR) // 364 days before that (365 days total)
+  start.setDate(start.getDate() - DAYS_OFFSET_YEAR)
 
   return {
     start: start.toISOString().split("T")[0],
@@ -172,17 +144,10 @@ function getPrevious365DaysRange(): DateRange {
   }
 }
 
-/**
- * Get cache key for a package name
- */
 function getCacheKey(packageName: string): string {
   return `${CACHE_PREFIX}${packageName}`
 }
 
-/**
- * Get cached stats with validity information
- * Returns the cached stats object if it exists, null otherwise
- */
 function getCachedStatsWithValidity(packageName: string): CachedStats | null {
   try {
     const cacheKey = getCacheKey(packageName)
@@ -195,18 +160,11 @@ function getCachedStatsWithValidity(packageName: string): CachedStats | null {
     const cachedStats: CachedStats = JSON.parse(cached)
     return cachedStats
   } catch (error) {
-    // If there's an error reading from localStorage, return null
     console.warn("Error reading cache:", error)
     return null
   }
 }
 
-/**
- * Store stats in cache with timestamp
- * @param packageName - Package name
- * @param data - Stats data to cache
- * @param timestamp - Optional timestamp. If not provided, uses current time
- */
 function setCachedStats(
   packageName: string,
   data: CachedStats["data"],
@@ -221,14 +179,11 @@ function setCachedStats(
   try {
     localStorage.setItem(cacheKey, JSON.stringify(cachedStats))
   } catch (error) {
-    // Handle quota exceeded error specifically
     if (error instanceof DOMException && error.name === "QuotaExceededError") {
       console.warn("LocalStorage quota exceeded. Clearing old cache entries...")
-      // Try to clear some old cache entries
       try {
         const keys = Object.keys(localStorage)
         const cacheKeys = keys.filter((key) => key.startsWith(CACHE_PREFIX))
-        // Remove oldest 50% of cache entries
         const entries = cacheKeys
           .map((key) => {
             try {
@@ -250,7 +205,6 @@ function setCachedStats(
           localStorage.removeItem(entry.key)
         })
 
-        // Retry setting the cache
         try {
           localStorage.setItem(cacheKey, JSON.stringify(cachedStats))
         } catch (retryError) {
@@ -260,17 +214,11 @@ function setCachedStats(
         console.warn("Failed to cleanup cache:", cleanupError)
       }
     } else {
-      // If there's another error writing to localStorage, just log it
-      // Don't fail the request if caching fails
       console.warn("Error writing to cache:", error)
     }
   }
 }
 
-/**
- * Fetch download statistics for a package in a given date range
- * Uses throttling to limit concurrent requests
- */
 async function fetchDownloads(
   packageName: string,
   start: string,
@@ -308,9 +256,6 @@ async function fetchDownloads(
   })
 }
 
-/**
- * Clear cache for a specific package
- */
 export function clearPackageCache(packageName: string): void {
   try {
     const cacheKey = getCacheKey(packageName)
@@ -320,9 +265,6 @@ export function clearPackageCache(packageName: string): void {
   }
 }
 
-/**
- * Clear cache for all packages
- */
 export function clearAllCache(): void {
   try {
     const keys = Object.keys(localStorage)
@@ -336,9 +278,6 @@ export function clearAllCache(): void {
   }
 }
 
-/**
- * Safely fetch downloads for a date range, returning null on error
- */
 async function fetchDownloadsSafely(
   packageName: string,
   start: string,
@@ -357,13 +296,6 @@ async function fetchDownloadsSafely(
   }
 }
 
-/**
- * Fetch download statistics for a package for week, month, and year periods
- * Uses localStorage cache with configurable expiration (default: 6 hours)
- * @param packageName - The NPM package name to fetch stats for
- * @param forceRefresh - If true, bypasses cache and fetches fresh data
- * @returns Promise resolving to download statistics for all periods
- */
 export async function getPackageStats(
   packageName: string,
   forceRefresh: boolean = false,
@@ -375,12 +307,10 @@ export async function getPackageStats(
   currentYearDownloads: number | null
   previousYearDownloads: number | null
 }> {
-  // Clear cache if force refresh is requested
   if (forceRefresh) {
     clearPackageCache(packageName)
   }
 
-  // Get date ranges
   const [
     currentWeekRange,
     previousWeekRange,
@@ -397,14 +327,12 @@ export async function getPackageStats(
     getPrevious365DaysRange(),
   ]
 
-  // Check cache first
   const cachedStatsObj = getCachedStatsWithValidity(packageName)
   const now = Date.now()
   const isCacheValid =
     cachedStatsObj && now - cachedStatsObj.timestamp < CACHE_EXPIRY_MS
   const cachedStats = cachedStatsObj?.data
 
-  // Check if there are any missing entries (null values) in cached data
   const hasMissingEntries =
     cachedStats &&
     [
@@ -416,16 +344,11 @@ export async function getPackageStats(
       cachedStats.previousYearDownloads,
     ].some((value) => value === null)
 
-  // If cache exists, is valid, has no missing entries, and force refresh is not requested,
-  // return it as-is
   if (isCacheValid && !hasMissingEntries && !forceRefresh && cachedStatsObj) {
     return cachedStatsObj.data
   }
 
-  // If we have cached data (valid or expired) with missing entries, retry only missing entries
-  // This ensures we fill in gaps even if cache is still valid
   if (cachedStats && !forceRefresh) {
-    // Keep non-null values, retry only null values
     const fetchPromises = [
       cachedStats.currentWeekDownloads !== null
         ? Promise.resolve(cachedStats.currentWeekDownloads)
@@ -489,8 +412,6 @@ export async function getPackageStats(
       previousYearDownloads,
     }
 
-    // Update cache with merged results (retry results for previously failed fetches)
-    // Preserve the original timestamp since we're only filling missing data
     const hasAnySuccess = [
       currentWeekDownloads,
       previousWeekDownloads,
@@ -501,14 +422,12 @@ export async function getPackageStats(
     ].some((value) => value !== null)
 
     if (hasAnySuccess && cachedStatsObj) {
-      // Preserve original timestamp when only fetching missing data
       setCachedStats(packageName, stats, cachedStatsObj.timestamp)
     }
 
     return stats
   }
 
-  // Cache miss or stale, fetch fresh data for all stats
   const [
     currentWeekDownloads,
     previousWeekDownloads,
@@ -558,8 +477,6 @@ export async function getPackageStats(
     previousYearDownloads,
   }
 
-  // Only cache if at least one stat succeeded (not all null)
-  // This allows retrying failed fetches on browser reload
   const hasAnySuccess = [
     currentWeekDownloads,
     previousWeekDownloads,
@@ -570,11 +487,9 @@ export async function getPackageStats(
   ].some((value) => value !== null)
 
   if (hasAnySuccess) {
-    // Cache the fresh data (even if some stats are null)
     setCachedStats(packageName, stats)
   }
-  // If all stats are null (all fetches failed), don't cache
-  // This allows retrying on browser reload
+  // Skip caching when all stats are null so a full retry happens on reload.
 
   return stats
 }
@@ -593,12 +508,6 @@ export interface PackageSearchResponse {
   }>
 }
 
-/**
- * Search for NPM packages by name
- * @param query - Search query string
- * @param limit - Maximum number of results to return (default: 10)
- * @returns Promise resolving to array of package search results
- */
 export async function searchPackages(
   query: string,
   limit: number = 10,
@@ -612,7 +521,6 @@ export async function searchPackages(
     const response = await fetch(url)
 
     if (!response.ok) {
-      // Don't throw errors for search failures, just return empty array
       console.warn(`Failed to search packages: ${response.status}`)
       return []
     }

@@ -32,7 +32,6 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
     },
   })
 
-  // Close autocomplete when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
