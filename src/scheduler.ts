@@ -1,77 +1,63 @@
 import PQueue from 'p-queue';
 import { FetchError } from './types';
 
-interface RetryConfig {
+export interface RequestSchedulerOptions {
+  maxConcurrent?: number;
+  maxRetries?: number;
+  baseDelayMs?: number;
+  rateLimitBaseDelayMs?: number;
+}
+
+interface RequestSchedulerConfig {
   maxRetries: number;
   baseDelayMs: number;
   rateLimitBaseDelayMs: number;
 }
 
-interface TaskSchedulerOptions {
-  maxConcurrent: number;
-  retryConfig?: Partial<RetryConfig>;
-}
-
-interface TaskOptions {
-  retryConfig?: Partial<RetryConfig>;
-}
-
-export class TaskScheduler {
+export class RequestScheduler {
   private readonly queue: PQueue;
-  private readonly defaultRetryConfig: RetryConfig;
+  private readonly config: RequestSchedulerConfig;
 
-  constructor({ maxConcurrent, retryConfig }: TaskSchedulerOptions) {
+  constructor({ maxConcurrent, ...restConfig }: RequestSchedulerOptions = {}) {
     this.queue = new PQueue({ concurrency: maxConcurrent });
-    this.defaultRetryConfig = {
-      maxRetries: 3,
-      baseDelayMs: 1000,
-      rateLimitBaseDelayMs: 5000,
-      ...retryConfig,
+    this.config = {
+      maxRetries: restConfig.maxRetries ?? 3,
+      baseDelayMs: restConfig.baseDelayMs ?? 1000,
+      rateLimitBaseDelayMs: restConfig.rateLimitBaseDelayMs ?? 5000,
     };
   }
 
-  public schedule<T>(
-    task: () => Promise<T>,
-    options?: TaskOptions,
-  ): Promise<T> {
-    const config = { ...this.defaultRetryConfig, ...options?.retryConfig };
-    return this.queue.add(() =>
-      this.executeWithRetry(task, config),
-    ) as Promise<T>;
+  public schedule<T>(task: () => Promise<T>): Promise<T> {
+    return this.queue.add(() => this.executeWithRetry(task)) as Promise<T>;
   }
 
   private async executeWithRetry<T>(
     task: () => Promise<T>,
-    config: RetryConfig,
     attempt: number = 0,
   ): Promise<T> {
     try {
       return await task();
     } catch (error) {
-      if (attempt >= config.maxRetries) {
+      if (attempt >= this.config.maxRetries) {
         throw error;
       }
 
-      const delay = this.calculateBackoff(error, attempt, config);
+      const delay = this.calculateBackoff(error, attempt);
       await new Promise((resolve) => setTimeout(resolve, delay));
 
-      return this.executeWithRetry(task, config, attempt + 1);
+      return this.executeWithRetry(task, attempt + 1);
     }
   }
 
-  private calculateBackoff(
-    error: unknown,
-    attempt: number,
-    config: RetryConfig,
-  ): number {
+  private calculateBackoff(error: unknown, attempt: number): number {
     if (error instanceof FetchError && error.status === 429) {
       const retryAfter = this.extractRetryAfter(error.response);
       if (retryAfter !== null) {
         return retryAfter * 1000;
       }
-      return config.rateLimitBaseDelayMs * Math.pow(2, attempt);
+      return this.config.rateLimitBaseDelayMs * Math.pow(2, attempt);
     }
-    return config.baseDelayMs * Math.pow(2, attempt);
+    return this.config.baseDelayMs * Math.pow(2, attempt);
   }
 
   private extractRetryAfter(response: Response): number | null {

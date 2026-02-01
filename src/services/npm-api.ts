@@ -1,6 +1,6 @@
 import type { DownloadData, PackageStats } from '../types';
 import { FetchError } from '../types';
-import { TaskScheduler } from '../scheduler';
+import { RequestScheduler } from '../scheduler';
 import {
   CACHE_EXPIRY_MS,
   getCachedStats,
@@ -19,7 +19,7 @@ const SEARCH_API_BASE =
 
 const MAX_CONCURRENT_REQUESTS = 6;
 
-const scheduler = new TaskScheduler({
+const scheduler = new RequestScheduler({
   maxConcurrent: MAX_CONCURRENT_REQUESTS,
 });
 
