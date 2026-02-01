@@ -13,7 +13,6 @@ interface TaskSchedulerOptions {
 }
 
 interface TaskOptions {
-  priority: number;
   retryConfig?: Partial<RetryConfig>;
 }
 
@@ -31,11 +30,14 @@ export class TaskScheduler {
     };
   }
 
-  public schedule<T>(task: () => Promise<T>, options: TaskOptions): Promise<T> {
-    const config = { ...this.defaultRetryConfig, ...options.retryConfig };
-    return this.queue.add(() => this.executeWithRetry(task, config), {
-      priority: options.priority,
-    }) as Promise<T>;
+  public schedule<T>(
+    task: () => Promise<T>,
+    options?: TaskOptions,
+  ): Promise<T> {
+    const config = { ...this.defaultRetryConfig, ...options?.retryConfig };
+    return this.queue.add(() =>
+      this.executeWithRetry(task, config),
+    ) as Promise<T>;
   }
 
   private async executeWithRetry<T>(
@@ -79,12 +81,12 @@ export class TaskScheduler {
     }
 
     const seconds = parseInt(retryAfter, 10);
-    if (!isNaN(seconds)) {
+    if (!Number.isNaN(seconds)) {
       return seconds;
     }
 
     const date = new Date(retryAfter);
-    if (!isNaN(date.getTime())) {
+    if (!Number.isNaN(date.getTime())) {
       const now = Date.now();
       const retryTime = date.getTime();
       return Math.max(0, Math.floor((retryTime - now) / 1000));

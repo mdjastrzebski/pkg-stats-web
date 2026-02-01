@@ -35,13 +35,6 @@ export interface DateRange {
   end: string;
 }
 
-async function throttledFetch<T>(
-  fn: () => Promise<T>,
-  priority: number = 0,
-): Promise<T> {
-  return scheduler.schedule(fn, { priority });
-}
-
 function getFullDataRange(): DateRange {
   const end = new Date();
   end.setDate(end.getDate() - 1);
@@ -111,9 +104,8 @@ async function fetchDownloads(
   packageName: string,
   start: string,
   end: string,
-  priority: number = 0,
 ): Promise<DownloadData> {
-  return throttledFetch(async () => {
+  return scheduler.schedule(async () => {
     const url = `${API_BASE}/${start}:${end}/${packageName}`;
     const response = await fetch(url);
 
@@ -150,17 +142,16 @@ async function fetchDownloads(
     }
 
     return response.json();
-  }, priority);
+  });
 }
 
 async function fetchDownloadsSafely(
   packageName: string,
   start: string,
   end: string,
-  priority: number = 0,
 ): Promise<DownloadData | null> {
   try {
-    return await fetchDownloads(packageName, start, end, priority);
+    return await fetchDownloads(packageName, start, end);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Unknown error';
@@ -170,8 +161,6 @@ async function fetchDownloadsSafely(
     return null;
   }
 }
-
-const PRIORITY_CURRENT = 40;
 
 export async function getPackageStats(
   packageName: string,
@@ -194,7 +183,6 @@ export async function getPackageStats(
     packageName,
     range.start,
     range.end,
-    PRIORITY_CURRENT,
   );
 
   // If API call failed or returned no data, return null
@@ -232,23 +220,21 @@ export async function searchPackages(
     return [];
   }
 
-  return throttledFetch(async () => {
-    const url = `${SEARCH_API_BASE}?text=${encodeURIComponent(
-      query,
-    )}&size=${limit}`;
-    const response = await fetch(url);
+  const url = `${SEARCH_API_BASE}?text=${encodeURIComponent(
+    query,
+  )}&size=${limit}`;
+  const response = await fetch(url);
 
-    if (!response.ok) {
-      console.warn(`Failed to search packages: ${response.status}`);
-      return [];
-    }
+  if (!response.ok) {
+    console.warn(`Failed to search packages: ${response.status}`);
+    return [];
+  }
 
-    const data: PackageSearchResponse = await response.json();
-    return data.objects.map((obj) => ({
-      name: obj.package.name,
-      description: obj.package.description,
-    }));
-  });
+  const data: PackageSearchResponse = await response.json();
+  return data.objects.map((obj) => ({
+    name: obj.package.name,
+    description: obj.package.description,
+  }));
 }
 
 export { CACHE_EXPIRY_MS, getCacheTimestamp, clearPackageCache, clearAllCache };
