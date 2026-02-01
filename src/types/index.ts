@@ -21,7 +21,7 @@ export interface PackageStats {
 export interface ComputedPackageStats {
   packageName: string;
   currentWeekDownloads: number;
-  changePercent: number | null;
+  weekChangePercent: number | null;
   monthChangePercent: number | null;
   yearChangePercent: number | null;
 }

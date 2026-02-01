@@ -55,9 +55,9 @@ export class RequestScheduler {
       if (retryAfter !== null) {
         return retryAfter * 1000;
       }
-      return this.config.rateLimitBaseDelayMs * Math.pow(2, attempt);
+      return this.config.rateLimitBaseDelayMs * 2 ** attempt;
     }
-    return this.config.baseDelayMs * Math.pow(2, attempt);
+    return this.config.baseDelayMs * 2 ** attempt;
   }
 
   private extractRetryAfter(response: Response): number | null {

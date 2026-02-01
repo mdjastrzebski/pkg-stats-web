@@ -99,16 +99,6 @@ function toSignificantDigits(num: number, digits: number): string {
   return numValue.toString();
 }
 
-export function calculateChange(
-  current: number | null,
-  previous: number | null,
-): number | null {
-  if (current === null || previous === null) {
-    return null;
-  }
-  return current - previous;
-}
-
 export function calculatePackageNameFontSize(
   packageName: string,
   baseSize: number = 1.5,
@@ -155,7 +145,7 @@ export function computeStats(stats: PackageStats): ComputedPackageStats {
   return {
     packageName: stats.name,
     currentWeekDownloads: stats.weeklyCurrent,
-    changePercent: calculateChangePercent(
+    weekChangePercent: calculateChangePercent(
       stats.weeklyCurrent,
       stats.weeklyPrevious,
     ),

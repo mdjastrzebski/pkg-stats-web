@@ -36,7 +36,7 @@ export function PackageCard({
     return percent >= 0 ? 'text-green-400' : 'text-rose-400';
   };
 
-  const changeColor = getChangeColor(computed.changePercent);
+  const changeColor = getChangeColor(computed.weekChangePercent);
   const monthChangeColor = getChangeColor(computed.monthChangePercent);
   const yearChangeColor = getChangeColor(computed.yearChangePercent);
 
@@ -94,7 +94,7 @@ export function PackageCard({
             <div>
               <p className="text-xs text-slate-400 tracking-wider mb-1">Week</p>
               <p className={`text-lg font-bold font-mono ${changeColor}`}>
-                {formatChangePercent(computed.changePercent)}
+                {formatChangePercent(computed.weekChangePercent)}
               </p>
             </div>
 
