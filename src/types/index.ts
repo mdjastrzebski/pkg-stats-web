@@ -18,23 +18,12 @@ export interface PackageStats {
   yearlyPrevious: number;
 }
 
-export interface DeprecatedPackageStats {
+export interface ComputedPackageStats {
   packageName: string;
-  currentWeekDownloads: number | null;
-  previousWeekDownloads: number | null;
-  change: number | null;
+  currentWeekDownloads: number;
   changePercent: number | null;
-  currentMonthDownloads: number | null;
-  previousMonthDownloads: number | null;
-  monthChange: number | null;
   monthChangePercent: number | null;
-  currentYearDownloads: number | null;
-  previousYearDownloads: number | null;
-  yearChange: number | null;
   yearChangePercent: number | null;
-  isLoading: boolean;
-  isStale: boolean;
-  error: string | null;
 }
 
 export class FetchError extends Error {

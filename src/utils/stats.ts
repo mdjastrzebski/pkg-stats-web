@@ -1,3 +1,5 @@
+import type { PackageStats, ComputedPackageStats } from '../types';
+
 const MAX_PACKAGE_NAME_LENGTH = 214;
 
 export interface ValidationResult {
@@ -147,4 +149,23 @@ export function formatChangePercent(percent: number | null): string {
   }
 
   return `${sign}${formatted}${suffix}%`;
+}
+
+export function computeStats(stats: PackageStats): ComputedPackageStats {
+  return {
+    packageName: stats.name,
+    currentWeekDownloads: stats.weeklyCurrent,
+    changePercent: calculateChangePercent(
+      stats.weeklyCurrent,
+      stats.weeklyPrevious,
+    ),
+    monthChangePercent: calculateChangePercent(
+      stats.monthlyCurrent,
+      stats.monthlyPrevious,
+    ),
+    yearChangePercent: calculateChangePercent(
+      stats.yearlyCurrent,
+      stats.yearlyPrevious,
+    ),
+  };
 }
