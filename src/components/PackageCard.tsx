@@ -34,11 +34,13 @@ export function PackageCard({
     return percent >= 0 ? '\u2191' : '\u2193';
   };
 
+  const isNegative =
+    computed.weekChangePercent !== null && computed.weekChangePercent < 0;
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
     <div
-      className="card-glow rounded-2xl px-6 pt-5 pb-6 transition-all duration-400 animate-fade-slide-in relative group"
+      className={`card-glow ${isNegative ? 'card-glow-negative' : ''} rounded-2xl px-6 pt-5 pb-6 transition-all duration-400 animate-fade-slide-in relative group`}
       style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-subtle)',
@@ -106,11 +108,7 @@ export function PackageCard({
         <p
           className="text-4xl sm:text-5xl font-bold font-mono tracking-tighter"
           style={{
-            color:
-              computed.weekChangePercent !== null &&
-              computed.weekChangePercent < 0
-                ? 'var(--negative)'
-                : 'var(--accent)',
+            color: isNegative ? 'var(--negative)' : 'var(--accent)',
           }}
         >
           {formatNumber(computed.currentWeekDownloads)}

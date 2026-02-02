@@ -145,6 +145,15 @@ button {
   opacity: 1;
 }
 
+.card-glow-negative::before {
+  background: linear-gradient(
+    135deg,
+    rgba(240, 113, 120, 0.1) 0%,
+    transparent 50%,
+    transparent 100%
+  );
+}
+
 /* Staggered entrance animations */
 @keyframes fadeSlideIn {
   from {
