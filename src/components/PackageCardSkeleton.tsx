@@ -23,7 +23,7 @@ export function PackageCardSkeleton({
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 whitespace-nowrap"
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis"
           style={{
             fontSize: calculatePackageNameFontSize(packageName),
             lineHeight: '1.2',

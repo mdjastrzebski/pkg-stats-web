@@ -37,7 +37,7 @@ export function PackageCard({
 
   return (
     <div
-      className="card-glow rounded-2xl p-6 transition-all duration-400 animate-fade-slide-in relative group"
+      className="card-glow rounded-2xl px-6 pt-5 pb-6 transition-all duration-400 animate-fade-slide-in relative group"
       style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-subtle)',
@@ -54,7 +54,7 @@ export function PackageCard({
     >
       <button
         onClick={onRemove}
-        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 cursor-pointer rounded-md"
+        className="absolute top-5 right-5 p-1 cursor-pointer rounded-md transition-colors duration-200"
         style={{ color: 'var(--text-tertiary)' }}
         onMouseEnter={(e) => {
           e.currentTarget.style.color = 'var(--text-secondary)';
@@ -65,7 +65,7 @@ export function PackageCard({
         aria-label={`Remove ${packageName}`}
       >
         <svg
-          className="w-4 h-4"
+          className="w-5 h-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -84,7 +84,7 @@ export function PackageCard({
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 whitespace-nowrap"
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis"
           style={{
             fontSize: calculatePackageNameFontSize(packageName),
             lineHeight: '1.2',
