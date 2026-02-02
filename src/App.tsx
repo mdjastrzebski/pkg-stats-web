@@ -1,19 +1,9 @@
-import { useEffect } from 'react';
-import { useLocalStorage } from './hooks/use-local-storage';
-import { PackageInput } from './components/PackageInput';
-import { PackageList } from './components/PackageList';
+import { useLocalStorage } from "./hooks/use-local-storage";
+import { PackageInput } from "./components/PackageInput";
+import { PackageList } from "./components/PackageList";
 
 function App() {
   const { packages, addPackage, removePackage } = useLocalStorage();
-
-  // One-time cleanup of stale localStorage cache entries (can be removed in a future release)
-  useEffect(() => {
-    for (const key of Object.keys(localStorage)) {
-      if (key.startsWith('npm_stats_cache_')) {
-        localStorage.removeItem(key);
-      }
-    }
-  }, []);
 
   const handleAddPackage = (packageName: string) => {
     addPackage(packageName);
@@ -31,7 +21,7 @@ function App() {
             NPM Package Stats
           </h1>
           <p className="text-slate-400 text-lg">
-            Track download statistics for your favorite{' '}
+            Track download statistics for your favorite{" "}
             <span className="text-violet-400">NPM packages</span>
           </p>
         </header>

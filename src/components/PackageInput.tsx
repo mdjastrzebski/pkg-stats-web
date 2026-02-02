@@ -78,8 +78,22 @@ export function PackageInput({ onAdd }: PackageInputProps) {
                 setError(null);
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Enter NPM package name"
-              className="w-full px-4 sm:px-5 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-violet-500/50 focus:bg-slate-800/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all text-base sm:text-lg"
+              placeholder="Search packages..."
+              className="w-full px-5 py-3.5 text-base sm:text-lg tracking-wide transition-all duration-300 rounded-xl outline-none"
+              style={{
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-accent)';
+                e.currentTarget.style.boxShadow =
+                  '0 0 0 3px var(--accent-glow)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
@@ -95,7 +109,11 @@ export function PackageInput({ onAdd }: PackageInputProps) {
               <div
                 id="package-suggestions"
                 role="listbox"
-                className="absolute z-50 w-full mt-2 bg-slate-800 border-2 border-slate-700/50 rounded-lg shadow-xl max-h-64 overflow-y-auto"
+                className="absolute z-50 w-full mt-2 rounded-xl shadow-2xl max-h-72 overflow-y-auto dropdown-scroll"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-medium)',
+                }}
               >
                 {suggestions.map((suggestion, index) => (
                   <button
@@ -104,19 +122,50 @@ export function PackageInput({ onAdd }: PackageInputProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => selectSuggestion(suggestion)}
-                    className={`w-full text-left px-4 py-3 hover:bg-slate-700/50 transition-colors ${
-                      index === selectedIndex
-                        ? 'bg-violet-500/20 border-l-4 border-violet-500'
-                        : ''
-                    } ${index === 0 ? 'rounded-t-lg' : ''} ${
-                      index === suggestions.length - 1 ? 'rounded-b-lg' : ''
-                    }`}
+                    className="w-full text-left px-5 py-3.5 transition-all duration-200 cursor-pointer"
+                    style={{
+                      background:
+                        index === selectedIndex
+                          ? 'var(--accent-dim)'
+                          : 'transparent',
+                      borderLeft:
+                        index === selectedIndex
+                          ? '2px solid var(--accent)'
+                          : '2px solid transparent',
+                      borderRadius:
+                        index === 0
+                          ? '0.75rem 0.75rem 0 0'
+                          : index === suggestions.length - 1
+                            ? '0 0 0.75rem 0.75rem'
+                            : '0',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (index !== selectedIndex) {
+                        e.currentTarget.style.background = 'var(--accent-glow)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (index !== selectedIndex) {
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
                   >
-                    <div className="text-slate-100 font-medium text-base">
+                    <div
+                      className="font-medium text-base font-mono"
+                      style={{
+                        color:
+                          index === selectedIndex
+                            ? 'var(--accent)'
+                            : 'var(--text-primary)',
+                      }}
+                    >
                       {suggestion.name}
                     </div>
                     {suggestion.description && (
-                      <div className="text-slate-400 text-sm mt-1 line-clamp-1">
+                      <div
+                        className="text-sm mt-0.5 line-clamp-1"
+                        style={{ color: 'var(--text-tertiary)' }}
+                      >
                         {suggestion.description}
                       </div>
                     )}
@@ -125,9 +174,10 @@ export function PackageInput({ onAdd }: PackageInputProps) {
               </div>
             )}
             {isSearching && query.trim().length >= 2 && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
                 <svg
-                  className="animate-spin h-5 w-5 text-violet-400"
+                  className="animate-spin h-4 w-4"
+                  style={{ color: 'var(--accent)' }}
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -151,7 +201,20 @@ export function PackageInput({ onAdd }: PackageInputProps) {
           </div>
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:border-violet-500/50 hover:text-violet-400 focus:outline-none transition-all tracking-wider text-base sm:text-lg rounded-lg font-medium whitespace-nowrap"
+            className="w-full sm:w-auto px-7 py-3.5 text-base sm:text-lg rounded-xl font-medium tracking-wide whitespace-nowrap transition-all duration-300 cursor-pointer"
+            style={{
+              background: 'var(--accent-dim)',
+              border: '1px solid var(--border-accent)',
+              color: 'var(--accent)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(99, 234, 190, 0.25)';
+              e.currentTarget.style.boxShadow = '0 0 20px var(--accent-glow)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--accent-dim)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
             aria-label="Add package"
           >
             Add
@@ -161,7 +224,8 @@ export function PackageInput({ onAdd }: PackageInputProps) {
       {error && (
         <p
           id="package-input-error"
-          className="mt-3 text-sm text-red-400 tracking-wide"
+          className="mt-3 text-sm tracking-wide"
+          style={{ color: 'var(--negative)' }}
           role="alert"
           aria-live="polite"
         >

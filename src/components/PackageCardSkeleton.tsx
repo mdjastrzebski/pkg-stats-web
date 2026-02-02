@@ -1,47 +1,83 @@
 import { calculatePackageNameFontSize } from '../utils/stats';
 
-export function PackageCardSkeleton({ packageName }: { packageName: string }) {
+export function PackageCardSkeleton({
+  packageName,
+  index,
+}: {
+  packageName: string;
+  index: number;
+}) {
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
-    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg relative">
-      <button
-        className="absolute top-2 right-2 text-slate-500 p-1 flex-shrink-0 cursor-not-allowed"
-        aria-label={`Remove ${packageName}`}
-        disabled
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={3}
-        >
-          <path
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-      <div className="flex justify-between items-start mb-2 gap-3 pr-8">
+    <div
+      className="rounded-2xl p-6 relative animate-fade-slide-in"
+      style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        animationDelay: `${index * 0.06}s`,
+      }}
+    >
+      <div className="mb-5">
         <a
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 whitespace-nowrap"
           style={{
             fontSize: calculatePackageNameFontSize(packageName),
             lineHeight: '1.2',
+            color: 'var(--text-primary)',
           }}
           title={packageName}
         >
           {packageName}
         </a>
       </div>
-      <div className="animate-pulse">
-        <div className="h-6 bg-slate-700/50 w-3/4 mb-2 rounded-lg"></div>
-        <div className="h-6 bg-slate-700/50 w-1/2 rounded-lg"></div>
+      <div className="space-y-3">
+        <div
+          className="h-5 w-24 rounded-md animate-shimmer"
+          style={{ opacity: 0.6 }}
+        />
+        <div
+          className="h-10 w-40 rounded-md animate-shimmer"
+          style={{ animationDelay: '0.1s', opacity: 0.6 }}
+        />
+        <div
+          className="mt-5 pt-5 flex gap-6"
+          style={{ borderTop: '1px solid var(--border-subtle)' }}
+        >
+          <div className="flex-1 space-y-1.5">
+            <div
+              className="h-3 w-10 rounded animate-shimmer"
+              style={{ animationDelay: '0.2s', opacity: 0.4 }}
+            />
+            <div
+              className="h-5 w-14 rounded animate-shimmer"
+              style={{ animationDelay: '0.25s', opacity: 0.4 }}
+            />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <div
+              className="h-3 w-12 rounded animate-shimmer"
+              style={{ animationDelay: '0.3s', opacity: 0.4 }}
+            />
+            <div
+              className="h-5 w-14 rounded animate-shimmer"
+              style={{ animationDelay: '0.35s', opacity: 0.4 }}
+            />
+          </div>
+          <div className="flex-1 space-y-1.5">
+            <div
+              className="h-3 w-10 rounded animate-shimmer"
+              style={{ animationDelay: '0.4s', opacity: 0.4 }}
+            />
+            <div
+              className="h-5 w-14 rounded animate-shimmer"
+              style={{ animationDelay: '0.45s', opacity: 0.4 }}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

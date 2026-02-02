@@ -26,20 +26,30 @@ export function PackageList({ packages, onRemove }: PackageListProps) {
 
   if (sortedPackages.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-slate-500 text-xl tracking-wider">
-          No packages added yet. Add your first package above!
+      <div className="text-center py-24">
+        <p
+          className="font-display text-2xl italic mb-3"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
+          No packages yet
+        </p>
+        <p
+          className="text-sm"
+          style={{ color: 'var(--text-tertiary)', opacity: 0.6 }}
+        >
+          Search for an npm package above to get started.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {sortedPackages.map((packageName) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {sortedPackages.map((packageName, index) => (
         <PackageCardWrapper
           key={packageName}
           packageName={packageName}
+          index={index}
           onStatsLoaded={handleStatsLoaded}
           onRemove={() => onRemove(packageName)}
         />
@@ -50,16 +60,17 @@ export function PackageList({ packages, onRemove }: PackageListProps) {
 
 function PackageCardWrapper({
   packageName,
+  index,
   onStatsLoaded,
   onRemove,
 }: {
   packageName: string;
+  index: number;
   onStatsLoaded: (stats: PackageStats) => void;
   onRemove: () => void;
 }) {
   const [retryKey, setRetryKey] = React.useState(0);
 
-  // Get promise from module-level cache
   const statsPromise = getCachedPromise(packageName, onStatsLoaded);
 
   return (
@@ -69,6 +80,7 @@ function PackageCardWrapper({
         <PackageCardError
           packageName={packageName}
           error={error}
+          index={index}
           onRemove={onRemove}
           onRetry={() => {
             invalidatePromise(packageName);
@@ -79,11 +91,14 @@ function PackageCardWrapper({
       )}
     >
       <React.Suspense
-        fallback={<PackageCardSkeleton packageName={packageName} />}
+        fallback={
+          <PackageCardSkeleton packageName={packageName} index={index} />
+        }
       >
         <PackageCard
           packageName={packageName}
           statsPromise={statsPromise}
+          index={index}
           onRemove={onRemove}
         />
       </React.Suspense>
