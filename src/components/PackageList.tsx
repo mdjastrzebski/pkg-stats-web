@@ -92,7 +92,11 @@ function PackageCardWrapper({
     >
       <React.Suspense
         fallback={
-          <PackageCardSkeleton packageName={packageName} index={index} />
+          <PackageCardSkeleton
+            packageName={packageName}
+            index={index}
+            onRemove={onRemove}
+          />
         }
       >
         <PackageCard

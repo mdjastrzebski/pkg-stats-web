@@ -1,11 +1,14 @@
 import { calculatePackageNameFontSize } from '../utils/stats';
+import { CloseIcon } from './icons/CloseIcon';
 
 export function PackageCardSkeleton({
   packageName,
   index,
+  onRemove,
 }: {
   packageName: string;
   index: number;
+  onRemove: () => void;
 }) {
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
@@ -18,6 +21,24 @@ export function PackageCardSkeleton({
         animationDelay: `${index * 0.06}s`,
       }}
     >
+      <button
+        onClick={onRemove}
+        className="absolute top-5 right-5 p-1 cursor-pointer rounded-md transition-all duration-200"
+        style={{ color: 'var(--text-tertiary)' }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = '#f87171';
+          e.currentTarget.style.filter =
+            'drop-shadow(0 0 4px rgba(248, 113, 113, 0.4))';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = 'var(--text-tertiary)';
+          e.currentTarget.style.filter = 'none';
+        }}
+        aria-label={`Remove ${packageName}`}
+      >
+        <CloseIcon className="w-5 h-5" />
+      </button>
+
       <div className="mb-5">
         <a
           href={npmUrl}
