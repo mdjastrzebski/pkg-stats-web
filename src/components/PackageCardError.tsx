@@ -27,13 +27,15 @@ export function PackageCardError({
     >
       <button
         onClick={onRemove}
-        className="absolute top-6 right-5 p-1 cursor-pointer rounded-md transition-colors duration-200"
+        className="absolute top-6 right-5 p-1 cursor-pointer rounded-md transition-all duration-200"
         style={{ color: 'var(--text-tertiary)' }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.color = 'var(--text-secondary)';
+          e.currentTarget.style.color = '#f87171';
+          e.currentTarget.style.filter = 'drop-shadow(0 0 4px rgba(248, 113, 113, 0.4))';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.color = 'var(--text-tertiary)';
+          e.currentTarget.style.filter = 'none';
         }}
         aria-label={`Remove ${packageName}`}
       >
