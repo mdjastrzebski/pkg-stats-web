@@ -1,3 +1,5 @@
+import type { PackageStats, ComputedPackageStats } from '../types';
+
 const MAX_PACKAGE_NAME_LENGTH = 214;
 
 export interface ValidationResult {
@@ -97,16 +99,6 @@ function toSignificantDigits(num: number, digits: number): string {
   return numValue.toString();
 }
 
-export function calculateChange(
-  current: number | null,
-  previous: number | null,
-): number | null {
-  if (current === null || previous === null) {
-    return null;
-  }
-  return current - previous;
-}
-
 export function calculatePackageNameFontSize(
   packageName: string,
   baseSize: number = 1.5,
@@ -147,4 +139,23 @@ export function formatChangePercent(percent: number | null): string {
   }
 
   return `${sign}${formatted}${suffix}%`;
+}
+
+export function computeStats(stats: PackageStats): ComputedPackageStats {
+  return {
+    packageName: stats.name,
+    currentWeekDownloads: stats.weeklyCurrent,
+    weekChangePercent: calculateChangePercent(
+      stats.weeklyCurrent,
+      stats.weeklyPrevious,
+    ),
+    monthChangePercent: calculateChangePercent(
+      stats.monthlyCurrent,
+      stats.monthlyPrevious,
+    ),
+    yearChangePercent: calculateChangePercent(
+      stats.yearlyCurrent,
+      stats.yearlyPrevious,
+    ),
+  };
 }

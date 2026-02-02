@@ -4,10 +4,9 @@ import { useAutocomplete } from '../hooks/use-autocomplete';
 
 interface PackageInputProps {
   onAdd: (packageName: string) => void;
-  isLoading?: boolean;
 }
 
-export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
+export function PackageInput({ onAdd }: PackageInputProps) {
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +80,6 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
               onKeyDown={handleKeyDown}
               placeholder="Enter NPM package name"
               className="w-full px-4 sm:px-5 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-violet-500/50 focus:bg-slate-800/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all text-base sm:text-lg"
-              disabled={isLoading}
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
@@ -153,8 +151,7 @@ export function PackageInput({ onAdd, isLoading = false }: PackageInputProps) {
           </div>
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:border-violet-500/50 hover:text-violet-400 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all tracking-wider text-base sm:text-lg rounded-lg font-medium whitespace-nowrap"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:border-violet-500/50 hover:text-violet-400 focus:outline-none transition-all tracking-wider text-base sm:text-lg rounded-lg font-medium whitespace-nowrap"
             aria-label="Add package"
           >
             Add

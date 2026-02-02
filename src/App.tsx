@@ -1,194 +1,42 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useLocalStorage } from './hooks/use-local-storage';
-import { getPackageStats, clearAllCache } from './services/npm-api';
-import type { PackageStats } from './types';
-import { calculateChangePercent, calculateChange } from './utils/stats';
+import { clearAllCache } from './services/npm-api';
+import { invalidateAllPromises } from './services/promise-cache';
 import { PackageInput } from './components/PackageInput';
 import { PackageList } from './components/PackageList';
 
 function App() {
   const { packages, addPackage, removePackage } = useLocalStorage();
-  const [stats, setStats] = useState<PackageStats[]>([]);
-  const statsRef = useRef<PackageStats[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
-    statsRef.current = stats;
-  }, [stats]);
-
-  const fetchAllStats = useCallback(
-    async (forceRefresh: boolean = false) => {
-      const statsPromises = packages.map(async (packageName) => {
-        if (!forceRefresh) {
-          const existing = statsRef.current.find(
-            (s) => s.packageName === packageName,
-          );
-          if (existing && !existing.isLoading && !existing.error) {
-            return existing;
-          }
-        }
-
-        setStats((prev) => {
-          const filtered = prev.filter((s) => s.packageName !== packageName);
-          return [
-            ...filtered,
-            {
-              packageName,
-              currentWeekDownloads: null,
-              previousWeekDownloads: null,
-              change: null,
-              changePercent: null,
-              currentMonthDownloads: null,
-              previousMonthDownloads: null,
-              monthChange: null,
-              monthChangePercent: null,
-              currentYearDownloads: null,
-              previousYearDownloads: null,
-              yearChange: null,
-              yearChangePercent: null,
-              isLoading: true,
-              error: null,
-            },
-          ];
-        });
-
-        try {
-          const data = await getPackageStats(packageName, forceRefresh);
-          const changePercent = calculateChangePercent(
-            data.currentWeekDownloads,
-            data.previousWeekDownloads,
-          );
-          const monthChangePercent = calculateChangePercent(
-            data.currentMonthDownloads,
-            data.previousMonthDownloads,
-          );
-          const yearChangePercent = calculateChangePercent(
-            data.currentYearDownloads,
-            data.previousYearDownloads,
-          );
-
-          return {
-            packageName,
-            currentWeekDownloads: data.currentWeekDownloads,
-            previousWeekDownloads: data.previousWeekDownloads,
-            change: calculateChange(
-              data.currentWeekDownloads,
-              data.previousWeekDownloads,
-            ),
-            changePercent,
-            currentMonthDownloads: data.currentMonthDownloads,
-            previousMonthDownloads: data.previousMonthDownloads,
-            monthChange: calculateChange(
-              data.currentMonthDownloads,
-              data.previousMonthDownloads,
-            ),
-            monthChangePercent,
-            currentYearDownloads: data.currentYearDownloads,
-            previousYearDownloads: data.previousYearDownloads,
-            yearChange: calculateChange(
-              data.currentYearDownloads,
-              data.previousYearDownloads,
-            ),
-            yearChangePercent,
-            isLoading: false,
-            error: null,
-          };
-        } catch (error) {
-          return {
-            packageName,
-            currentWeekDownloads: null,
-            previousWeekDownloads: null,
-            change: null,
-            changePercent: null,
-            currentMonthDownloads: null,
-            previousMonthDownloads: null,
-            monthChange: null,
-            monthChangePercent: null,
-            currentYearDownloads: null,
-            previousYearDownloads: null,
-            yearChange: null,
-            yearChangePercent: null,
-            isLoading: false,
-            error:
-              error instanceof Error ? error.message : 'Failed to fetch stats',
-          };
-        }
-      });
-
-      const results = await Promise.all(statsPromises);
-      const sortedResults = results.sort((a, b) => {
-        const aVal = a.currentWeekDownloads ?? 0;
-        const bVal = b.currentWeekDownloads ?? 0;
-        return bVal - aVal;
-      });
-      setStats(sortedResults);
-    },
-    [packages],
-  );
-
-  useEffect(() => {
-    if (packages.length > 0) {
-      fetchAllStats();
-    }
-  }, [packages, fetchAllStats]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
+  const handleRefresh = () => {
     clearAllCache();
-    await fetchAllStats(true);
-    setIsRefreshing(false);
+    invalidateAllPromises();
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleAddPackage = (packageName: string) => {
     addPackage(packageName);
-    setStats((prev) => {
-      if (prev.some((s) => s.packageName === packageName.toLowerCase())) {
-        return prev;
-      }
-      return [
-        ...prev,
-        {
-          packageName: packageName.toLowerCase(),
-          currentWeekDownloads: null,
-          previousWeekDownloads: null,
-          change: null,
-          changePercent: null,
-          currentMonthDownloads: null,
-          previousMonthDownloads: null,
-          monthChange: null,
-          monthChangePercent: null,
-          currentYearDownloads: null,
-          previousYearDownloads: null,
-          yearChange: null,
-          yearChangePercent: null,
-          isLoading: true,
-          error: null,
-        },
-      ];
-    });
   };
 
   const handleRemovePackage = (packageName: string) => {
     removePackage(packageName);
-    setStats((prev) => prev.filter((s) => s.packageName !== packageName));
   };
-
-  const isLoadingAny = stats.some((s) => s.isLoading);
 
   return (
     <div className="min-h-screen bg-slate-950 py-8 px-4 sm:px-6 w-full">
       <div className="max-w-7xl mx-auto w-full">
         <header className="relative text-center mb-12">
           <button
+            type="button"
             onClick={handleRefresh}
-            disabled={isRefreshing || packages.length === 0}
+            disabled={packages.length === 0}
             className="absolute top-0 right-0 p-3 border-2 border-slate-700/50 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:border-violet-500/50 hover:text-violet-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all font-bold rounded-lg"
             aria-label="Refresh stats"
-            aria-busy={isRefreshing}
             title="Refresh stats"
           >
             <svg
-              className={`w-6 h-6 ${isRefreshing ? 'animate-spin' : ''}`}
+              className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -211,17 +59,12 @@ function App() {
         </header>
 
         <div className="mb-8">
-          <PackageInput onAdd={handleAddPackage} isLoading={isLoadingAny} />
+          <PackageInput onAdd={handleAddPackage} />
         </div>
 
-        <div aria-live="polite" aria-atomic="true" className="sr-only">
-          {isLoadingAny && 'Loading package statistics'}
-          {!isLoadingAny &&
-            stats.length > 0 &&
-            `${stats.length} package${stats.length === 1 ? '' : 's'} loaded`}
+        <div key={refreshKey}>
+          <PackageList packages={packages} onRemove={handleRemovePackage} />
         </div>
-
-        <PackageList packages={stats} onRemove={handleRemovePackage} />
       </div>
     </div>
   );
