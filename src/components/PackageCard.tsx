@@ -61,7 +61,8 @@ export function PackageCard({
         style={{ color: 'var(--text-tertiary)' }}
         onMouseEnter={(e) => {
           e.currentTarget.style.color = '#f87171';
-          e.currentTarget.style.filter = 'drop-shadow(0 0 4px rgba(248, 113, 113, 0.4))';
+          e.currentTarget.style.filter =
+            'drop-shadow(0 0 4px rgba(248, 113, 113, 0.4))';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.color = 'var(--text-tertiary)';
