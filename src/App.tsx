@@ -14,13 +14,13 @@ function App() {
   };
 
   return (
-    <div className="grain min-h-screen py-10 px-5 sm:px-8 w-full">
+    <div className="grain min-h-screen py-4 px-5 sm:py-10 sm:px-8 w-full">
       <div className="max-w-6xl mx-auto w-full">
-        <header className="relative mb-16 animate-fade-in">
+        <header className="relative mb-8 sm:mb-16 animate-fade-in">
           <div className="flex items-start justify-between">
             <div>
               <h1
-                className="font-display text-5xl sm:text-6xl lg:text-7xl tracking-tight mb-3"
+                className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-tight mb-2 sm:mb-3"
                 style={{
                   color: "var(--text-primary)",
                   lineHeight: 1.05,
