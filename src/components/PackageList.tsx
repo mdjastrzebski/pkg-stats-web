@@ -61,7 +61,7 @@ function PackageCardWrapper({
   const [retryKey, setRetryKey] = React.useState(0);
 
   // Get promise from module-level cache
-  const statsPromise = getCachedPromise(packageName);
+  const statsPromise = getCachedPromise(packageName, onStatsLoaded);
 
   return (
     <ErrorBoundary
@@ -86,7 +86,6 @@ function PackageCardWrapper({
         <PackageCard
           packageName={packageName}
           statsPromise={statsPromise}
-          onStatsLoaded={onStatsLoaded}
           onRemove={onRemove}
         />
       </React.Suspense>

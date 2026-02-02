@@ -10,24 +10,16 @@ import {
 interface PackageCardProps {
   packageName: string;
   onRemove: () => void;
-  onStatsLoaded: (stats: PackageStats) => void;
   statsPromise: Promise<PackageStats>;
 }
 
 export function PackageCard({
   packageName,
   onRemove,
-  onStatsLoaded,
   statsPromise,
 }: PackageCardProps) {
   const stats = React.use(statsPromise);
   const computed = computeStats(stats);
-
-  const statsLoadedEvent = React.useEffectEvent(onStatsLoaded);
-
-  React.useEffect(() => {
-    statsLoadedEvent(stats);
-  }, [stats]);
 
   const getChangeColor = (percent: number | null): string => {
     if (percent === null) {
