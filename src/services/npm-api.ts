@@ -1,14 +1,6 @@
 import type { DownloadData, PackageStats } from '../types';
 import { FetchError } from '../types';
 import { RequestScheduler } from '../scheduler';
-import {
-  CACHE_EXPIRY_MS,
-  getCachedStats,
-  setCachedStats,
-  getCacheTimestamp,
-  clearPackageCache,
-  clearAllCache,
-} from './cache';
 
 const API_BASE =
   import.meta.env.VITE_NPM_API_BASE_URL ||
@@ -164,20 +156,7 @@ async function fetchDownloadsSafely(
 
 export async function getPackageStats(
   packageName: string,
-  forceRefresh: boolean = false,
 ): Promise<PackageStats | null> {
-  if (forceRefresh) {
-    clearPackageCache(packageName);
-  }
-
-  const cached = getCachedStats(packageName);
-  const now = Date.now();
-  const isCacheValid = cached && now - cached.timestamp < CACHE_EXPIRY_MS;
-
-  if (isCacheValid && cached) {
-    return cached.data;
-  }
-
   const range = getFullDataRange();
   const dailyData = await fetchDownloadsSafely(
     packageName,
@@ -185,17 +164,11 @@ export async function getPackageStats(
     range.end,
   );
 
-  // If API call failed or returned no data, return null
   if (!dailyData?.downloads || dailyData.downloads.length === 0) {
     return null;
   }
 
-  const stats = calculateStatsFromDailyData(packageName, dailyData.downloads);
-
-  // Cache the stats (they always have valid data at this point)
-  setCachedStats(packageName, stats);
-
-  return stats;
+  return calculateStatsFromDailyData(packageName, dailyData.downloads);
 }
 
 export interface PackageSearchResult {
@@ -236,5 +209,3 @@ export async function searchPackages(
     description: obj.package.description,
   }));
 }
-
-export { CACHE_EXPIRY_MS, getCacheTimestamp, clearPackageCache, clearAllCache };

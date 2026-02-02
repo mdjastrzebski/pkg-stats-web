@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { PackageCard } from './PackageCard';
 import { ErrorBoundary } from './ErrorBoundary';
-import { clearPackageCache } from '../services/npm-api';
 import { getCachedPromise, invalidatePromise } from '../services/promise-cache';
 import { PackageCardError } from './PackageCardError';
 import { PackageCardSkeleton } from './PackageCardSkeleton';
@@ -72,7 +71,6 @@ function PackageCardWrapper({
           error={error}
           onRemove={onRemove}
           onRetry={() => {
-            clearPackageCache(packageName);
             invalidatePromise(packageName);
             setRetryKey((prev) => prev + 1);
             reset();
