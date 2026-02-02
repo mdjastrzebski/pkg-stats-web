@@ -1,4 +1,5 @@
 import { calculatePackageNameFontSize } from '../utils/stats';
+import { CloseIcon } from './icons/CloseIcon';
 
 export function PackageCardError({
   packageName,
@@ -36,19 +37,7 @@ export function PackageCardError({
         }}
         aria-label={`Remove ${packageName}`}
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
+        <CloseIcon className="w-5 h-5" />
       </button>
 
       <div className="mb-4">
