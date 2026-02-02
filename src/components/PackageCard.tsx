@@ -103,7 +103,13 @@ export function PackageCard({
         </p>
         <p
           className="text-4xl sm:text-5xl font-bold font-mono tracking-tighter"
-          style={{ color: 'var(--accent)' }}
+          style={{
+            color:
+              computed.weekChangePercent !== null &&
+              computed.weekChangePercent < 0
+                ? 'var(--negative)'
+                : 'var(--accent)',
+          }}
         >
           {formatNumber(computed.currentWeekDownloads)}
         </p>
