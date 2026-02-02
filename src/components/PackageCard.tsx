@@ -24,9 +24,9 @@ export function PackageCard({
   const stats = React.use(statsPromise);
   const computed = computeStats(stats);
 
-  const getChangeColor = (percent: number | null): string => {
-    if (percent === null) return 'var(--text-tertiary)';
-    return percent >= 0 ? 'var(--positive)' : 'var(--negative)';
+  const getChangeClass = (percent: number | null): string => {
+    if (percent === null) return 'text-text-tertiary';
+    return percent >= 0 ? 'text-positive' : 'text-negative';
   };
 
   const getArrow = (percent: number | null): string => {
@@ -40,34 +40,12 @@ export function PackageCard({
 
   return (
     <div
-      className={`card-glow ${isNegative ? 'card-glow-negative' : ''} rounded-2xl px-6 pt-5 pb-6 transition-all duration-400 animate-fade-slide-in relative group`}
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-subtle)',
-        animationDelay: `${index * 0.06}s`,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'var(--bg-card-hover)';
-        e.currentTarget.style.borderColor = 'var(--border-medium)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'var(--bg-card)';
-        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-      }}
+      className={`card-glow ${isNegative ? 'card-glow-negative' : ''} rounded-2xl px-6 pt-5 pb-6 transition-all duration-400 animate-fade-slide-in relative group bg-bg-card border border-border-subtle hover:bg-bg-card-hover hover:border-border-medium`}
+      style={{ animationDelay: `${index * 0.06}s` }}
     >
       <button
         onClick={onRemove}
-        className="absolute top-5 right-5 p-1 cursor-pointer rounded-md transition-all duration-200"
-        style={{ color: 'var(--text-tertiary)' }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = '#f87171';
-          e.currentTarget.style.filter =
-            'drop-shadow(0 0 4px rgba(248, 113, 113, 0.4))';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = 'var(--text-tertiary)';
-          e.currentTarget.style.filter = 'none';
-        }}
+        className="absolute top-5 right-5 p-1 cursor-pointer rounded-md transition-all duration-200 text-text-tertiary hover:text-red-400 hover:drop-shadow-[0_0_4px_rgba(248,113,113,0.4)]"
         aria-label={`Remove ${packageName}`}
       >
         <CloseIcon className="w-5 h-5" />
@@ -78,18 +56,8 @@ export function PackageCard({
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis"
-          style={{
-            fontSize: calculatePackageNameFontSize(packageName),
-            lineHeight: '1.2',
-            color: 'var(--text-primary)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--text-primary)';
-          }}
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis text-text-primary hover:text-accent leading-[1.2]"
+          style={{ fontSize: calculatePackageNameFontSize(packageName) }}
           title={packageName}
         >
           {packageName}
@@ -97,45 +65,33 @@ export function PackageCard({
       </div>
 
       <div>
-        <p
-          className="text-xs font-mono tracking-widest uppercase mb-2"
-          style={{
-            color: 'var(--text-tertiary)',
-            letterSpacing: '0.15em',
-          }}
-        >
+        <p className="text-xs font-mono tracking-[0.15em] uppercase mb-2 text-text-tertiary">
           Weekly downloads
         </p>
         <p
-          className="text-4xl sm:text-5xl font-bold font-mono tracking-tighter"
-          style={{
-            color: isNegative ? 'var(--negative)' : 'var(--accent)',
-          }}
+          className={`text-4xl sm:text-5xl font-bold font-mono tracking-tighter ${isNegative ? 'text-negative' : 'text-accent'}`}
         >
           {formatNumber(computed.currentWeekDownloads)}
         </p>
       </div>
 
-      <div
-        className="mt-5 pt-5 flex gap-6"
-        style={{ borderTop: '1px solid var(--border-subtle)' }}
-      >
+      <div className="mt-5 pt-5 flex gap-6 border-t border-border-subtle">
         <StatItem
           label="Week"
           value={computed.weekChangePercent}
-          color={getChangeColor(computed.weekChangePercent)}
+          colorClass={getChangeClass(computed.weekChangePercent)}
           arrow={getArrow(computed.weekChangePercent)}
         />
         <StatItem
           label="Month"
           value={computed.monthChangePercent}
-          color={getChangeColor(computed.monthChangePercent)}
+          colorClass={getChangeClass(computed.monthChangePercent)}
           arrow={getArrow(computed.monthChangePercent)}
         />
         <StatItem
           label="Year"
           value={computed.yearChangePercent}
-          color={getChangeColor(computed.yearChangePercent)}
+          colorClass={getChangeClass(computed.yearChangePercent)}
           arrow={getArrow(computed.yearChangePercent)}
         />
       </div>
@@ -146,26 +102,20 @@ export function PackageCard({
 function StatItem({
   label,
   value,
-  color,
+  colorClass,
   arrow,
 }: {
   label: string;
   value: number | null;
-  color: string;
+  colorClass: string;
   arrow: string;
 }) {
   return (
     <div className="flex-1">
-      <p
-        className="text-xs tracking-wider uppercase mb-1"
-        style={{
-          color: 'var(--text-tertiary)',
-          letterSpacing: '0.1em',
-        }}
-      >
+      <p className="text-xs tracking-[0.1em] uppercase mb-1 text-text-tertiary">
         {label}
       </p>
-      <p className="text-base font-semibold font-mono" style={{ color }}>
+      <p className={`text-base font-semibold font-mono ${colorClass}`}>
         {arrow && <span className="mr-0.5 text-sm">{arrow}</span>}
         {formatChangePercent(value)}
       </p>

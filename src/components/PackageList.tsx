@@ -27,16 +27,10 @@ export function PackageList({ packages, onRemove }: PackageListProps) {
   if (sortedPackages.length === 0) {
     return (
       <div className="text-center py-24">
-        <p
-          className="font-display text-2xl italic mb-3"
-          style={{ color: 'var(--text-tertiary)' }}
-        >
+        <p className="font-display text-2xl italic mb-3 text-text-tertiary">
           No packages yet
         </p>
-        <p
-          className="text-sm"
-          style={{ color: 'var(--text-tertiary)', opacity: 0.6 }}
-        >
+        <p className="text-sm text-text-tertiary opacity-60">
           Search for an npm package above to get started.
         </p>
       </div>

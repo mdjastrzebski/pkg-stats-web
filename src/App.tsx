@@ -19,24 +19,12 @@ function App() {
         <header className="relative mb-8 sm:mb-16 animate-fade-in">
           <div className="flex items-start justify-between">
             <div>
-              <h1
-                className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-tight mb-2 sm:mb-3"
-                style={{
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.05,
-                }}
-              >
+              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-tight mb-2 sm:mb-3 text-text-primary leading-[1.05]">
                 npm
                 <br />
-                <span style={{ color: 'var(--accent)' }}>stats</span>
+                <span className="text-accent">stats</span>
               </h1>
-              <p
-                className="text-base sm:text-lg max-w-md"
-                style={{
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.6,
-                }}
-              >
+              <p className="text-base sm:text-lg max-w-md text-text-secondary leading-relaxed">
                 Track download trends for your favorite packages.
               </p>
             </div>

@@ -18,26 +18,12 @@ export function PackageCardError({
 
   return (
     <div
-      className="rounded-2xl p-6 relative group animate-fade-slide-in"
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-subtle)',
-        animationDelay: `${index * 0.06}s`,
-      }}
+      className="rounded-2xl p-6 relative group animate-fade-slide-in bg-bg-card border border-border-subtle"
+      style={{ animationDelay: `${index * 0.06}s` }}
     >
       <button
         onClick={onRemove}
-        className="absolute top-6 right-5 p-1 cursor-pointer rounded-md transition-all duration-200"
-        style={{ color: 'var(--text-tertiary)' }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = '#f87171';
-          e.currentTarget.style.filter =
-            'drop-shadow(0 0 4px rgba(248, 113, 113, 0.4))';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = 'var(--text-tertiary)';
-          e.currentTarget.style.filter = 'none';
-        }}
+        className="absolute top-6 right-5 p-1 cursor-pointer rounded-md transition-all duration-200 text-text-tertiary hover:text-red-400 hover:drop-shadow-[0_0_4px_rgba(248,113,113,0.4)]"
         aria-label={`Remove ${packageName}`}
       >
         <CloseIcon className="w-5 h-5" />
@@ -48,38 +34,19 @@ export function PackageCardError({
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis"
-          style={{
-            fontSize: calculatePackageNameFontSize(packageName),
-            lineHeight: '1.2',
-            color: 'var(--text-primary)',
-          }}
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis text-text-primary leading-[1.2]"
+          style={{ fontSize: calculatePackageNameFontSize(packageName) }}
           title={packageName}
         >
           {packageName}
         </a>
       </div>
 
-      <p className="text-sm mb-4" style={{ color: 'var(--negative)' }}>
-        {error.message}
-      </p>
+      <p className="text-sm mb-4 text-negative">{error.message}</p>
 
       <button
         onClick={onRetry}
-        className="px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 cursor-pointer"
-        style={{
-          background: 'var(--bg-secondary)',
-          border: '1px solid var(--border-subtle)',
-          color: 'var(--text-secondary)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border-accent)';
-          e.currentTarget.style.color = 'var(--accent)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-          e.currentTarget.style.color = 'var(--text-secondary)';
-        }}
+        className="px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 cursor-pointer bg-bg-secondary border border-border-subtle text-text-secondary hover:border-border-accent hover:text-accent"
       >
         Retry
       </button>

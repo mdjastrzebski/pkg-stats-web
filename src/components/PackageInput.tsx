@@ -80,21 +80,7 @@ export function PackageInput({ onAdd }: PackageInputProps) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Search packages..."
-              className="w-full px-5 py-3.5 text-base sm:text-lg tracking-wide transition-all duration-300 rounded-xl outline-none"
-              style={{
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-primary)',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-accent)';
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 3px var(--accent-glow)';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              className="w-full px-5 py-3.5 text-base sm:text-lg tracking-wide transition-all duration-300 rounded-xl outline-none bg-bg-input border border-border-subtle text-text-primary focus:border-border-accent focus:shadow-[0_0_0_3px_var(--color-accent-glow)]"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
@@ -110,11 +96,7 @@ export function PackageInput({ onAdd }: PackageInputProps) {
               <div
                 id="package-suggestions"
                 role="listbox"
-                className="absolute z-50 w-full mt-2 rounded-xl shadow-2xl max-h-72 overflow-y-auto dropdown-scroll"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-medium)',
-                }}
+                className="absolute z-50 w-full mt-2 rounded-xl shadow-2xl max-h-72 overflow-y-auto dropdown-scroll bg-bg-secondary border border-border-medium"
               >
                 {suggestions.map((suggestion, index) => (
                   <button
@@ -123,50 +105,23 @@ export function PackageInput({ onAdd }: PackageInputProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => selectSuggestion(suggestion)}
-                    className="w-full text-left px-5 py-3.5 transition-all duration-200 cursor-pointer"
-                    style={{
-                      background:
-                        index === selectedIndex
-                          ? 'var(--accent-dim)'
-                          : 'transparent',
-                      borderLeft:
-                        index === selectedIndex
-                          ? '2px solid var(--accent)'
-                          : '2px solid transparent',
-                      borderRadius:
-                        index === 0
-                          ? '0.75rem 0.75rem 0 0'
-                          : index === suggestions.length - 1
-                            ? '0 0 0.75rem 0.75rem'
-                            : '0',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (index !== selectedIndex) {
-                        e.currentTarget.style.background = 'var(--accent-glow)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (index !== selectedIndex) {
-                        e.currentTarget.style.background = 'transparent';
-                      }
-                    }}
+                    className={`w-full text-left px-5 py-3.5 transition-all duration-200 cursor-pointer border-l-2 first:rounded-t-xl last:rounded-b-xl ${
+                      index === selectedIndex
+                        ? 'bg-accent-dim border-l-accent'
+                        : 'bg-transparent border-l-transparent hover:bg-accent-glow'
+                    }`}
                   >
                     <div
-                      className="font-medium text-base font-mono"
-                      style={{
-                        color:
-                          index === selectedIndex
-                            ? 'var(--accent)'
-                            : 'var(--text-primary)',
-                      }}
+                      className={`font-medium text-base font-mono ${
+                        index === selectedIndex
+                          ? 'text-accent'
+                          : 'text-text-primary'
+                      }`}
                     >
                       {suggestion.name}
                     </div>
                     {suggestion.description && (
-                      <div
-                        className="text-sm mt-0.5 line-clamp-1"
-                        style={{ color: 'var(--text-tertiary)' }}
-                      >
+                      <div className="text-sm mt-0.5 line-clamp-1 text-text-tertiary">
                         {suggestion.description}
                       </div>
                     )}
@@ -176,29 +131,13 @@ export function PackageInput({ onAdd }: PackageInputProps) {
             )}
             {isSearching && query.trim().length >= 2 && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                <SpinnerIcon
-                  className="animate-spin h-4 w-4"
-                  style={{ color: 'var(--accent)' }}
-                />
+                <SpinnerIcon className="animate-spin h-4 w-4 text-accent" />
               </div>
             )}
           </div>
           <button
             type="submit"
-            className="w-full sm:w-auto px-7 py-3.5 text-base sm:text-lg rounded-xl font-medium tracking-wide whitespace-nowrap transition-all duration-300 cursor-pointer"
-            style={{
-              background: 'var(--accent-dim)',
-              border: '1px solid var(--border-accent)',
-              color: 'var(--accent)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(99, 234, 190, 0.25)';
-              e.currentTarget.style.boxShadow = '0 0 20px var(--accent-glow)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--accent-dim)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
+            className="w-full sm:w-auto px-7 py-3.5 text-base sm:text-lg rounded-xl font-medium tracking-wide whitespace-nowrap transition-all duration-300 cursor-pointer bg-accent-dim border border-border-accent text-accent hover:bg-[rgba(99,234,190,0.25)] hover:shadow-[0_0_20px_var(--color-accent-glow)]"
             aria-label="Add package"
           >
             Add
@@ -208,8 +147,7 @@ export function PackageInput({ onAdd }: PackageInputProps) {
       {error && (
         <p
           id="package-input-error"
-          className="mt-3 text-sm tracking-wide"
-          style={{ color: 'var(--negative)' }}
+          className="mt-3 text-sm tracking-wide text-negative"
           role="alert"
           aria-live="polite"
         >
