@@ -32,7 +32,7 @@ function App() {
         </header>
 
         <div
-          className="mb-10 animate-fade-slide-in"
+          className="relative z-10 mb-10 animate-fade-slide-in"
           style={{ animationDelay: '0.1s' }}
         >
           <PackageInput onAdd={handleAddPackage} />
