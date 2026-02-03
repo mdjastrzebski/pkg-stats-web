@@ -3,11 +3,11 @@
 @theme {
   --color-bg-primary: #0a0a0f;
   --color-bg-secondary: #111118;
-  --color-bg-card: #14141c;
-  --color-bg-card-hover: #1a1a24;
+  --color-bg-card: #191922;
+  --color-bg-card-hover: #1f1f2a;
   --color-bg-input: #111118;
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-border-medium: rgba(255, 255, 255, 0.1);
+  --color-border-subtle: rgba(255, 255, 255, 0.10);
+  --color-border-medium: rgba(255, 255, 255, 0.15);
   --color-border-accent: rgba(99, 234, 190, 0.3);
   --color-text-primary: #e8e8ed;
   --color-text-secondary: #8a8a9a;
