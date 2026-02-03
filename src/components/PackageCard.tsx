@@ -69,7 +69,7 @@ export function PackageCard({
           Weekly downloads
         </p>
         <p
-          className={`text-4xl sm:text-5xl font-bold font-mono tracking-tighter ${isNegative ? 'text-negative' : 'text-accent'}`}
+          className={`text-4xl sm:text-5xl font-medium font-numeric ${isNegative ? 'text-negative' : 'text-accent'}`}
         >
           {formatNumber(computed.currentWeekDownloads)}
         </p>
@@ -115,7 +115,7 @@ function StatItem({
       <p className="text-xs tracking-[0.1em] uppercase mb-1 text-text-tertiary">
         {label}
       </p>
-      <p className={`text-base font-semibold font-mono ${colorClass}`}>
+      <p className={`text-base font-medium font-numeric ${colorClass}`}>
         {arrow && <span className="mr-0.5 text-sm">{arrow}</span>}
         {formatChangePercent(value)}
       </p>
