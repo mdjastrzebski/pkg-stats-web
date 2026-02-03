@@ -120,7 +120,6 @@ export function formatChangePercent(percent: number | null): string {
   if (percent === null) {
     return '-';
   }
-  const sign = percent >= 0 ? '+' : '-';
   const absPercent = Math.abs(percent);
 
   let formatted: string;
@@ -138,7 +137,7 @@ export function formatChangePercent(percent: number | null): string {
     formatted = toSignificantDigits(absPercent, 2);
   }
 
-  return `${sign}${formatted}${suffix}%`;
+  return `${formatted}${suffix}%`;
 }
 
 export function computeStats(stats: PackageStats): ComputedPackageStats {

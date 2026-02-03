@@ -1,19 +1,9 @@
-import { useEffect } from 'react';
 import { useLocalStorage } from './hooks/use-local-storage';
 import { PackageInput } from './components/PackageInput';
 import { PackageList } from './components/PackageList';
 
 function App() {
   const { packages, addPackage, removePackage } = useLocalStorage();
-
-  // One-time cleanup of stale localStorage cache entries (can be removed in a future release)
-  useEffect(() => {
-    for (const key of Object.keys(localStorage)) {
-      if (key.startsWith('npm_stats_cache_')) {
-        localStorage.removeItem(key);
-      }
-    }
-  }, []);
 
   const handleAddPackage = (packageName: string) => {
     addPackage(packageName);
@@ -24,23 +14,33 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 py-8 px-4 sm:px-6 w-full">
-      <div className="max-w-7xl mx-auto w-full">
-        <header className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-slate-100 mb-4 tracking-tight">
-            NPM Package Stats
-          </h1>
-          <p className="text-slate-400 text-lg">
-            Track download statistics for your favorite{' '}
-            <span className="text-violet-400">NPM packages</span>
-          </p>
+    <div className="grain min-h-screen py-4 px-5 sm:py-10 sm:px-8 w-full">
+      <div className="max-w-6xl mx-auto w-full">
+        <header className="relative mb-8 sm:mb-16 animate-fade-in">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl tracking-tight mb-2 sm:mb-3 text-text-primary leading-[1.05]">
+                npm
+                <br />
+                <span className="text-accent">stats</span>
+              </h1>
+              <p className="text-base sm:text-lg max-w-md text-text-secondary leading-relaxed">
+                Track download trends for your favorite packages.
+              </p>
+            </div>
+          </div>
         </header>
 
-        <div className="mb-8">
+        <div
+          className="relative z-10 mb-10 animate-fade-slide-in"
+          style={{ animationDelay: '0.1s' }}
+        >
           <PackageInput onAdd={handleAddPackage} />
         </div>
 
-        <PackageList packages={packages} onRemove={handleRemovePackage} />
+        <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <PackageList packages={packages} onRemove={handleRemovePackage} />
+        </div>
       </div>
     </div>
   );

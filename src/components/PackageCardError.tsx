@@ -1,58 +1,52 @@
 import { calculatePackageNameFontSize } from '../utils/stats';
+import { CloseIcon } from './icons/CloseIcon';
 
 export function PackageCardError({
   packageName,
   error,
   onRemove,
   onRetry,
+  index,
 }: {
   packageName: string;
   error: Error;
   onRemove: () => void;
   onRetry: () => void;
+  index: number;
 }) {
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
-    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg transition-all relative">
+    <div
+      className="rounded-2xl p-6 relative group animate-fade-slide-in bg-bg-card border border-border-subtle"
+      style={{ animationDelay: `${index * 0.06}s` }}
+    >
       <button
         onClick={onRemove}
-        className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
+        className="absolute top-6 right-5 p-1 cursor-pointer rounded-md transition-all duration-200 text-text-tertiary hover:text-red-400 hover:drop-shadow-[0_0_4px_rgba(248,113,113,0.4)]"
         aria-label={`Remove ${packageName}`}
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={3}
-        >
-          <path
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
+        <CloseIcon className="w-5 h-5" />
       </button>
-      <div className="flex justify-between items-start mb-2 gap-3 pr-8">
+
+      <div className="mb-4">
         <a
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
-          style={{
-            fontSize: calculatePackageNameFontSize(packageName),
-            lineHeight: '1.2',
-          }}
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis text-text-primary leading-[1.2]"
+          style={{ fontSize: calculatePackageNameFontSize(packageName) }}
           title={packageName}
         >
           {packageName}
         </a>
       </div>
-      <p className="text-red-400 mb-3">{error.message}</p>
+
+      <p className="text-sm mb-4 text-negative">{error.message}</p>
+
       <button
         onClick={onRetry}
-        className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors"
+        className="px-4 py-2 text-sm rounded-lg font-medium transition-all duration-200 cursor-pointer bg-bg-secondary border border-border-subtle text-text-secondary hover:border-border-accent hover:text-accent"
       >
         Retry
       </button>

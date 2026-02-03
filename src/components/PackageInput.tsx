@@ -1,6 +1,7 @@
 import { useState, type FormEvent, useEffect, useRef } from 'react';
 import { validatePackageName } from '../utils/stats';
 import { useAutocomplete } from '../hooks/use-autocomplete';
+import { SpinnerIcon } from './icons/SpinnerIcon';
 
 interface PackageInputProps {
   onAdd: (packageName: string) => void;
@@ -78,8 +79,8 @@ export function PackageInput({ onAdd }: PackageInputProps) {
                 setError(null);
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Enter NPM package name"
-              className="w-full px-4 sm:px-5 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-100 placeholder-slate-500 tracking-wide focus:outline-none focus:border-violet-500/50 focus:bg-slate-800/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all text-base sm:text-lg"
+              placeholder="Search packages..."
+              className="w-full px-5 py-3.5 text-base sm:text-lg tracking-wide transition-all duration-300 rounded-xl outline-none bg-bg-input border border-border-subtle text-text-primary focus:border-border-accent focus:shadow-[0_0_0_3px_var(--color-accent-glow)]"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck="false"
@@ -95,7 +96,7 @@ export function PackageInput({ onAdd }: PackageInputProps) {
               <div
                 id="package-suggestions"
                 role="listbox"
-                className="absolute z-50 w-full mt-2 bg-slate-800 border-2 border-slate-700/50 rounded-lg shadow-xl max-h-64 overflow-y-auto"
+                className="absolute z-50 w-full mt-2 rounded-xl shadow-2xl max-h-72 overflow-y-auto dropdown-scroll bg-bg-secondary border border-border-medium"
               >
                 {suggestions.map((suggestion, index) => (
                   <button
@@ -104,19 +105,23 @@ export function PackageInput({ onAdd }: PackageInputProps) {
                     role="option"
                     aria-selected={index === selectedIndex}
                     onClick={() => selectSuggestion(suggestion)}
-                    className={`w-full text-left px-4 py-3 hover:bg-slate-700/50 transition-colors ${
+                    className={`w-full text-left px-5 py-3.5 transition-all duration-200 cursor-pointer border-l-2 first:rounded-t-xl last:rounded-b-xl ${
                       index === selectedIndex
-                        ? 'bg-violet-500/20 border-l-4 border-violet-500'
-                        : ''
-                    } ${index === 0 ? 'rounded-t-lg' : ''} ${
-                      index === suggestions.length - 1 ? 'rounded-b-lg' : ''
+                        ? 'bg-accent-dim border-l-accent'
+                        : 'bg-transparent border-l-transparent hover:bg-accent-glow'
                     }`}
                   >
-                    <div className="text-slate-100 font-medium text-base">
+                    <div
+                      className={`font-medium text-base font-mono ${
+                        index === selectedIndex
+                          ? 'text-accent'
+                          : 'text-text-primary'
+                      }`}
+                    >
                       {suggestion.name}
                     </div>
                     {suggestion.description && (
-                      <div className="text-slate-400 text-sm mt-1 line-clamp-1">
+                      <div className="text-sm mt-0.5 line-clamp-1 text-text-tertiary">
                         {suggestion.description}
                       </div>
                     )}
@@ -125,33 +130,14 @@ export function PackageInput({ onAdd }: PackageInputProps) {
               </div>
             )}
             {isSearching && query.trim().length >= 2 && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <svg
-                  className="animate-spin h-5 w-5 text-violet-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <SpinnerIcon className="animate-spin h-4 w-4 text-accent" />
               </div>
             )}
           </div>
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border-2 border-slate-700/50 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:border-violet-500/50 hover:text-violet-400 focus:outline-none transition-all tracking-wider text-base sm:text-lg rounded-lg font-medium whitespace-nowrap"
+            className="w-full sm:w-auto px-7 py-3.5 text-base sm:text-lg rounded-xl font-medium tracking-wide whitespace-nowrap transition-all duration-300 cursor-pointer bg-accent-dim border border-border-accent text-accent hover:bg-[rgba(99,234,190,0.25)] hover:shadow-[0_0_20px_var(--color-accent-glow)]"
             aria-label="Add package"
           >
             Add
@@ -161,7 +147,7 @@ export function PackageInput({ onAdd }: PackageInputProps) {
       {error && (
         <p
           id="package-input-error"
-          className="mt-3 text-sm text-red-400 tracking-wide"
+          className="mt-3 text-sm tracking-wide text-negative"
           role="alert"
           aria-live="polite"
         >

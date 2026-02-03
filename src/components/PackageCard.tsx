@@ -6,108 +6,119 @@ import {
   calculatePackageNameFontSize,
   computeStats,
 } from '../utils/stats';
+import { CloseIcon } from './icons/CloseIcon';
 
 interface PackageCardProps {
   packageName: string;
   onRemove: () => void;
   statsPromise: Promise<PackageStats>;
+  index: number;
 }
 
 export function PackageCard({
   packageName,
   onRemove,
   statsPromise,
+  index,
 }: PackageCardProps) {
   const stats = React.use(statsPromise);
   const computed = computeStats(stats);
 
-  const getChangeColor = (percent: number | null): string => {
-    if (percent === null) {
-      return 'text-slate-400';
-    }
-    return percent >= 0 ? 'text-green-400' : 'text-rose-400';
+  const getChangeClass = (percent: number | null): string => {
+    if (percent === null) return 'text-text-tertiary';
+    return percent >= 0 ? 'text-positive' : 'text-negative';
   };
 
-  const changeColor = getChangeColor(computed.weekChangePercent);
-  const monthChangeColor = getChangeColor(computed.monthChangePercent);
-  const yearChangeColor = getChangeColor(computed.yearChangePercent);
+  const getArrow = (percent: number | null): string => {
+    if (percent === null) return '';
+    return percent >= 0 ? '\u2191' : '\u2193';
+  };
 
+  const isNegative =
+    computed.weekChangePercent !== null && computed.weekChangePercent < 0;
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
-    <div className="bg-slate-800 border border-slate-700/50 p-6 rounded-xl shadow-lg hover:shadow-xl hover:border-violet-500/50 hover:bg-slate-800/90 transition-all cursor-pointer relative">
+    <div
+      className={`card-glow ${isNegative ? 'card-glow-negative' : ''} rounded-2xl px-6 pt-5 pb-6 transition-all duration-400 animate-fade-slide-in relative group bg-bg-card border border-border-subtle hover:bg-bg-card-hover hover:border-border-medium`}
+      style={{ animationDelay: `${index * 0.06}s` }}
+    >
       <button
         onClick={onRemove}
-        className="absolute top-2 right-2 text-slate-500 hover:text-slate-300 transition-colors p-1 flex-shrink-0"
+        className="absolute top-5 right-5 p-1 cursor-pointer rounded-md transition-all duration-200 text-text-tertiary hover:text-red-400 hover:drop-shadow-[0_0_4px_rgba(248,113,113,0.4)]"
         aria-label={`Remove ${packageName}`}
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={3}
-        >
-          <path
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
+        <CloseIcon className="w-5 h-5" />
       </button>
-      <div className="flex justify-between items-start mb-4 gap-3 pr-8">
+
+      <div className="mb-5">
         <a
           href={npmUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-bold text-slate-100 tracking-tight flex-1 min-w-0 pr-2 hover:text-violet-400 transition-colors whitespace-nowrap"
-          style={{
-            fontSize: calculatePackageNameFontSize(packageName),
-            lineHeight: '1.2',
-          }}
+          className="font-semibold tracking-tight block pr-8 transition-colors duration-200 overflow-hidden text-ellipsis text-text-primary hover:text-accent leading-[1.2]"
+          style={{ fontSize: calculatePackageNameFontSize(packageName) }}
           title={packageName}
         >
           {packageName}
         </a>
       </div>
 
-      <div className="space-y-3">
-        <div>
-          <p className="text-xs text-slate-400 tracking-wider mb-1">
-            Downloads (last 7 days)
-          </p>
-          <p className="text-5xl font-bold text-violet-400 font-mono">
-            {formatNumber(computed.currentWeekDownloads)}
-          </p>
-        </div>
-
-        <div className="pt-3 border-t border-slate-700/50">
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <div>
-              <p className="text-xs text-slate-400 tracking-wider mb-1">Week</p>
-              <p className={`text-lg font-bold font-mono ${changeColor}`}>
-                {formatChangePercent(computed.weekChangePercent)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400 tracking-wider mb-1">
-                Month
-              </p>
-              <p className={`text-lg font-bold font-mono ${monthChangeColor}`}>
-                {formatChangePercent(computed.monthChangePercent)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400 tracking-wider mb-1">Year</p>
-              <p className={`text-lg font-bold font-mono ${yearChangeColor}`}>
-                {formatChangePercent(computed.yearChangePercent)}
-              </p>
-            </div>
-          </div>
-        </div>
+      <div>
+        <p className="text-xs font-mono tracking-[0.15em] uppercase mb-2 text-text-tertiary">
+          Weekly downloads
+        </p>
+        <p
+          className={`text-4xl sm:text-5xl font-medium font-numeric ${isNegative ? 'text-negative' : 'text-accent'}`}
+        >
+          {formatNumber(computed.currentWeekDownloads)}
+        </p>
       </div>
+
+      <div className="mt-5 pt-5 flex gap-6 border-t border-border-subtle">
+        <StatItem
+          label="Week"
+          value={computed.weekChangePercent}
+          colorClass={getChangeClass(computed.weekChangePercent)}
+          arrow={getArrow(computed.weekChangePercent)}
+        />
+        <StatItem
+          label="Month"
+          value={computed.monthChangePercent}
+          colorClass={getChangeClass(computed.monthChangePercent)}
+          arrow={getArrow(computed.monthChangePercent)}
+        />
+        <StatItem
+          label="Year"
+          value={computed.yearChangePercent}
+          colorClass={getChangeClass(computed.yearChangePercent)}
+          arrow={getArrow(computed.yearChangePercent)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function StatItem({
+  label,
+  value,
+  colorClass,
+  arrow,
+}: {
+  label: string;
+  value: number | null;
+  colorClass: string;
+  arrow: string;
+}) {
+  return (
+    <div className="flex-1">
+      <p className="text-xs tracking-[0.1em] uppercase mb-1 text-text-tertiary">
+        {label}
+      </p>
+      <p className={`text-base font-medium font-numeric ${colorClass}`}>
+        {arrow && <span className="mr-0.5 text-sm">{arrow}</span>}
+        {formatChangePercent(value)}
+      </p>
     </div>
   );
 }
