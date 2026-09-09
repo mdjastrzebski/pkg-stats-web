@@ -22,6 +22,22 @@ const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1;
 const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1;
 const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1;
 
+// Number of most-recent days inspected for gaps. A day with zero downloads (or
+// no data at all) inside this window usually means the NPM API has not
+// finalized that day yet.
+const RECENT_RELIABILITY_WINDOW_DAYS = 7;
+
+// Days immediately before the recent window used to confirm the package
+// normally has a steady, near-daily download history. Four whole weeks keeps
+// the sample free of weekday skew.
+const BASELINE_HISTORY_DAYS = 28;
+
+// Fraction of baseline days that must report downloads for the recent window to
+// be judged against an "established" history. Below this, zero-download days in
+// the recent window are treated as normal for a new or low-traffic package and
+// `missingDataDays` stays 0.
+const BASELINE_MIN_ACTIVE_RATIO = 0.75;
+
 export interface DateRange {
   start: string;
   end: string;
@@ -81,6 +97,33 @@ function calculateStatsFromDailyData(
       .reduce((sum, d) => sum + d.downloads, 0);
   }
 
+  function countActiveDays(start: Date, end: Date): number {
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+
+    return sorted.filter(
+      (d) => d.day >= startStr && d.day <= endStr && d.downloads > 0,
+    ).length;
+  }
+
+  const recentWindowStart = new Date(yesterday);
+  recentWindowStart.setDate(
+    recentWindowStart.getDate() - (RECENT_RELIABILITY_WINDOW_DAYS - 1),
+  );
+  const baselineEnd = new Date(recentWindowStart);
+  baselineEnd.setDate(baselineEnd.getDate() - 1);
+  const baselineStart = new Date(baselineEnd);
+  baselineStart.setDate(baselineStart.getDate() - (BASELINE_HISTORY_DAYS - 1));
+
+  const hasEstablishedHistory =
+    countActiveDays(baselineStart, baselineEnd) >=
+    BASELINE_HISTORY_DAYS * BASELINE_MIN_ACTIVE_RATIO;
+
+  const missingDataDays = hasEstablishedHistory
+    ? RECENT_RELIABILITY_WINDOW_DAYS -
+      countActiveDays(recentWindowStart, yesterday)
+    : 0;
+
   return {
     name: packageName,
     weeklyCurrent: sumRange(currentWeekStart, yesterday),
@@ -89,6 +132,7 @@ function calculateStatsFromDailyData(
     monthlyPrevious: sumRange(previousMonthStart, previousMonthEnd),
     yearlyCurrent: sumRange(currentYearStart, yesterday),
     yearlyPrevious: sumRange(previousYearStart, previousYearEnd),
+    missingDataDays,
   };
 }
 

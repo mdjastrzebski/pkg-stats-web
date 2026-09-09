@@ -36,6 +36,7 @@ export function PackageCard({
 
   const isNegative =
     computed.weekChangePercent !== null && computed.weekChangePercent < 0;
+  const isUnreliable = computed.missingDataDays > 0;
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
@@ -61,6 +62,16 @@ export function PackageCard({
           title={packageName}
         >
           {packageName}
+          {isUnreliable && (
+            <span
+              className="ml-1.5 text-amber-400 align-middle"
+              role="img"
+              aria-label="Download data may be unreliable"
+              title={`${computed.missingDataDays} of the last 7 days missing data`}
+            >
+              {'⚠'}
+            </span>
+          )}
         </a>
       </div>
 
