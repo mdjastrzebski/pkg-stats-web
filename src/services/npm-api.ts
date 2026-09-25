@@ -23,8 +23,10 @@ const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1;
 const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1;
 
 // The NPM range API returns at most 18 months per request and silently drops
-// older days, so the full range is fetched in chunks of at most one year.
-const MAX_DAYS_PER_REQUEST = DAYS_PER_YEAR;
+// older days, so the full range is fetched in chunks that stay safely under
+// that limit (the shortest 18-month span is ~546 days). Two chunks cover the
+// full two-year range.
+const MAX_DAYS_PER_REQUEST = 540;
 
 // Maximum number of most-recent days the stats windows can slide back when the
 // NPM API has not finalized those days yet (they report zero downloads or no
@@ -49,23 +51,37 @@ const BASELINE_MIN_ACTIVE_RATIO = 0.75;
 // keeps the weekday/weekend pattern intact.
 const GAP_FILL_MAX_WEEKS = 4;
 
+// Minimum estimate for a zero-download day to count as a data gap. Downloads
+// are roughly Poisson, so a real zero at this rate is ~e^-10 (0.005%) likely;
+// below it, the zero is kept as plausibly real.
+const GAP_FILL_MIN_ESTIMATE = 10;
+
 export interface DateRange {
   start: string;
   end: string;
 }
 
+// NPM reports downloads per UTC day, so all dates here are UTC midnights and
+// day arithmetic uses UTC to stay independent of the user's timezone.
 function toDayString(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
 function addDays(date: Date, days: number): Date {
   const result = new Date(date);
-  result.setDate(result.getDate() + days);
+  result.setUTCDate(result.getUTCDate() + days);
   return result;
 }
 
+function getYesterdayUtc(): Date {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1),
+  );
+}
+
 function getDataRanges(): DateRange[] {
-  const end = addDays(new Date(), -1);
+  const end = getYesterdayUtc();
   const start = addDays(end, -(DAYS_PER_YEAR * 2 + MAX_DATA_DELAY_DAYS - 1));
 
   const ranges: DateRange[] = [];
@@ -92,10 +108,7 @@ function calculateStatsFromDailyData(
     downloadsByDay.set(d.day, d.downloads);
   }
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  // Noon keeps toDayString() on the same calendar day in every timezone.
-  yesterday.setHours(12, 0, 0, 0);
+  const yesterday = getYesterdayUtc();
 
   function countActiveDays(start: Date, end: Date): number {
     const startStr = toDayString(start);
@@ -129,8 +142,9 @@ function calculateStatsFromDailyData(
 
   // For established packages, a zero-download day inside the range is an NPM
   // data gap rather than a real zero. Estimate it from the nearest same weekday
-  // with data before and after it (up to currentEnd). Days before the package's
-  // first recorded download stay zero.
+  // with data before and after it (up to currentEnd), but only when that
+  // estimate makes a real zero implausible. Days before the package's first
+  // recorded download stay zero.
   const firstActiveDay = dailyData.find((d) => d.downloads > 0)?.day;
   const estimatedDays = new Set<string>();
 
@@ -141,6 +155,9 @@ function calculateStatsFromDailyData(
     for (let week = 1; week <= GAP_FILL_MAX_WEEKS; week++) {
       const day = toDayString(addDays(date, direction * week * DAYS_PER_WEEK));
       if (day > currentEndStr) return undefined;
+      // Only real data counts; chaining estimates would stretch one value
+      // across a gap of any length.
+      if (estimatedDays.has(day)) continue;
       const downloads = downloadsByDay.get(day);
       if (downloads) return downloads;
     }
@@ -149,7 +166,7 @@ function calculateStatsFromDailyData(
 
   if (hasEstablishedHistory && firstActiveDay) {
     for (
-      let date = new Date(`${firstActiveDay}T12:00:00`);
+      let date = new Date(`${firstActiveDay}T00:00:00Z`);
       toDayString(date) <= currentEndStr;
       date = addDays(date, 1)
     ) {
@@ -162,12 +179,14 @@ function calculateStatsFromDailyData(
       ].filter((value) => value !== undefined);
       if (neighbors.length === 0) continue;
 
-      downloadsByDay.set(
-        day,
-        Math.round(
-          neighbors.reduce((sum, value) => sum + value, 0) / neighbors.length,
-        ),
+      const estimate = Math.round(
+        neighbors.reduce((sum, value) => sum + value, 0) / neighbors.length,
       );
+      // The baseline only vouches for recent weeks; older sparse days may be
+      // real zeros.
+      if (estimate < GAP_FILL_MIN_ESTIMATE) continue;
+
+      downloadsByDay.set(day, estimate);
       estimatedDays.add(day);
     }
   }
