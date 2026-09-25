@@ -41,9 +41,8 @@ const BASELINE_HISTORY_DAYS = 28;
 
 // Fraction of baseline days that must report downloads for trailing
 // zero-download days to be treated as a publishing delay, and interior ones as
-// gaps to estimate. Below this, recent
-// zero-download days are treated as normal for a new or low-traffic package and
-// `dataDelayDays` stays 0.
+// gaps to estimate. Below this, recent zero-download days are treated as normal
+// for a new or low-traffic package and `dataDelayDays` stays 0.
 const BASELINE_MIN_ACTIVE_RATIO = 0.75;
 
 // How many weeks before and after a missing day to search for the same weekday
@@ -145,7 +144,13 @@ function calculateStatsFromDailyData(
   // with data before and after it (up to currentEnd), but only when that
   // estimate makes a real zero implausible. Days before the package's first
   // recorded download stay zero.
-  const firstActiveDay = dailyData.find((d) => d.downloads > 0)?.day;
+  // Chunks are not guaranteed to arrive in date order, so take the minimum.
+  const firstActiveDay = dailyData
+    .filter((d) => d.downloads > 0)
+    .reduce<string | undefined>(
+      (min, d) => (min === undefined || d.day < min ? d.day : min),
+      undefined,
+    );
   const estimatedDays = new Set<string>();
 
   function findSameWeekdayDownloads(

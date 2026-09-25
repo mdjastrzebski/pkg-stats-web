@@ -137,8 +137,10 @@ export function formatChangePercent(percent: number | null): string {
     formatted = toSignificantDigits(absPercent, 2);
   }
 
-  // Keep 2 significant digits, but never more than 1 decimal place.
-  formatted = (Math.round(parseFloat(formatted) * 10) / 10).toString();
+  // Keep 2 significant digits, but never more than 1 decimal place. Non-zero
+  // changes that would round to 0 show as "0.0" to set them apart from no change.
+  const rounded = Math.round(parseFloat(formatted) * 10) / 10;
+  formatted = rounded === 0 && absPercent > 0 ? '0.0' : rounded.toString();
 
   return `${formatted}${suffix}%`;
 }

@@ -73,7 +73,7 @@ export function PackageCard({
       </div>
 
       <div>
-        <p className="text-xs font-mono tracking-[0.15em] uppercase text-text-tertiary mb-2">
+        <p className="text-xs font-mono tracking-[0.15em] uppercase mb-2 text-text-tertiary">
           Weekly downloads
         </p>
         <p
@@ -105,12 +105,17 @@ export function PackageCard({
       </div>
 
       {dataNotes.length > 0 && (
-        <p
-          className="mt-4 text-xs text-right text-text-tertiary"
-          title="NPM reported zero downloads for some days. Missing recent days shift all periods back to the last day with data; missing days in the last 30 days are estimated from the same weekday in nearby weeks."
-        >
-          {dataNotes.join(' · ')}
-        </p>
+        <details className="mt-4 text-xs text-right text-text-tertiary">
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <span className="sr-only">Download data is incomplete: </span>
+            {dataNotes.join(' · ')}
+          </summary>
+          <p className="mt-2 text-left">
+            NPM reported zero downloads for some days. Missing recent days shift
+            all periods back to the last day with data; missing days in the last
+            30 days are estimated from the same weekday in nearby weeks.
+          </p>
+        </details>
       )}
     </div>
   );
