@@ -156,6 +156,6 @@ export function computeStats(stats: PackageStats): ComputedPackageStats {
       stats.yearlyCurrent,
       stats.yearlyPrevious,
     ),
-    missingDataDays: stats.missingDataDays,
+    dataDelayDays: stats.dataDelayDays,
   };
 }

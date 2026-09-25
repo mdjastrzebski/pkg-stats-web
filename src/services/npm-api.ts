@@ -22,20 +22,21 @@ const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1;
 const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1;
 const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1;
 
-// Number of most-recent days inspected for gaps. A day with zero downloads (or
-// no data at all) inside this window usually means the NPM API has not
-// finalized that day yet.
-const RECENT_RELIABILITY_WINDOW_DAYS = 7;
+// Maximum number of most-recent days the stats windows can slide back when the
+// NPM API has not finalized those days yet (they report zero downloads or no
+// data at all). One extra week is fetched on top of two full years so the
+// shifted previous-year window still has complete data.
+const MAX_DATA_DELAY_DAYS = 7;
 
-// Days immediately before the recent window used to confirm the package
+// Days immediately before the delay window used to confirm the package
 // normally has a steady, near-daily download history. Four whole weeks keeps
 // the sample free of weekday skew.
 const BASELINE_HISTORY_DAYS = 28;
 
-// Fraction of baseline days that must report downloads for the recent window to
-// be judged against an "established" history. Below this, zero-download days in
-// the recent window are treated as normal for a new or low-traffic package and
-// `missingDataDays` stays 0.
+// Fraction of baseline days that must report downloads for trailing
+// zero-download days to be treated as a publishing delay. Below this, recent
+// zero-download days are treated as normal for a new or low-traffic package and
+// `dataDelayDays` stays 0.
 const BASELINE_MIN_ACTIVE_RATIO = 0.75;
 
 export interface DateRange {
@@ -43,15 +44,23 @@ export interface DateRange {
   end: string;
 }
 
+function toDayString(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
 function getFullDataRange(): DateRange {
-  const end = new Date();
-  end.setDate(end.getDate() - 1);
-  const start = new Date(end);
-  start.setDate(start.getDate() - (DAYS_PER_YEAR * 2 - 1));
+  const end = addDays(new Date(), -1);
+  const start = addDays(end, -(DAYS_PER_YEAR * 2 + MAX_DATA_DELAY_DAYS - 1));
 
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: toDayString(start),
+    end: toDayString(end),
   };
 }
 
@@ -59,80 +68,74 @@ function calculateStatsFromDailyData(
   packageName: string,
   dailyData: Array<{ downloads: number; day: string }>,
 ): PackageStats {
-  const sorted = [...dailyData].sort((a, b) => a.day.localeCompare(b.day));
+  const downloadsByDay = new Map<string, number>();
+  for (const d of dailyData) {
+    downloadsByDay.set(d.day, d.downloads);
+  }
+
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   yesterday.setHours(0, 0, 0, 0);
 
-  const currentWeekStart = new Date(yesterday);
-  currentWeekStart.setDate(currentWeekStart.getDate() - DAYS_OFFSET_WEEK);
-
-  const previousWeekEnd = new Date(currentWeekStart);
-  previousWeekEnd.setDate(previousWeekEnd.getDate() - 1);
-  const previousWeekStart = new Date(previousWeekEnd);
-  previousWeekStart.setDate(previousWeekStart.getDate() - DAYS_OFFSET_WEEK);
-
-  const currentMonthStart = new Date(yesterday);
-  currentMonthStart.setDate(currentMonthStart.getDate() - DAYS_OFFSET_MONTH);
-
-  const previousMonthEnd = new Date(currentMonthStart);
-  previousMonthEnd.setDate(previousMonthEnd.getDate() - 1);
-  const previousMonthStart = new Date(previousMonthEnd);
-  previousMonthStart.setDate(previousMonthStart.getDate() - DAYS_OFFSET_MONTH);
-
-  const currentYearStart = new Date(yesterday);
-  currentYearStart.setDate(currentYearStart.getDate() - DAYS_OFFSET_YEAR);
-
-  const previousYearEnd = new Date(currentYearStart);
-  previousYearEnd.setDate(previousYearEnd.getDate() - 1);
-  const previousYearStart = new Date(previousYearEnd);
-  previousYearStart.setDate(previousYearStart.getDate() - DAYS_OFFSET_YEAR);
-
   function sumRange(start: Date, end: Date): number {
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = end.toISOString().split('T')[0];
+    const startStr = toDayString(start);
+    const endStr = toDayString(end);
 
-    return sorted
+    return dailyData
       .filter((d) => d.day >= startStr && d.day <= endStr)
       .reduce((sum, d) => sum + d.downloads, 0);
   }
 
   function countActiveDays(start: Date, end: Date): number {
-    const startStr = start.toISOString().split('T')[0];
-    const endStr = end.toISOString().split('T')[0];
+    const startStr = toDayString(start);
+    const endStr = toDayString(end);
 
-    return sorted.filter(
+    return dailyData.filter(
       (d) => d.day >= startStr && d.day <= endStr && d.downloads > 0,
     ).length;
   }
 
-  const recentWindowStart = new Date(yesterday);
-  recentWindowStart.setDate(
-    recentWindowStart.getDate() - (RECENT_RELIABILITY_WINDOW_DAYS - 1),
-  );
-  const baselineEnd = new Date(recentWindowStart);
-  baselineEnd.setDate(baselineEnd.getDate() - 1);
-  const baselineStart = new Date(baselineEnd);
-  baselineStart.setDate(baselineStart.getDate() - (BASELINE_HISTORY_DAYS - 1));
-
+  const baselineEnd = addDays(yesterday, -MAX_DATA_DELAY_DAYS);
+  const baselineStart = addDays(baselineEnd, -(BASELINE_HISTORY_DAYS - 1));
   const hasEstablishedHistory =
     countActiveDays(baselineStart, baselineEnd) >=
     BASELINE_HISTORY_DAYS * BASELINE_MIN_ACTIVE_RATIO;
 
-  const missingDataDays = hasEstablishedHistory
-    ? RECENT_RELIABILITY_WINDOW_DAYS -
-      countActiveDays(recentWindowStart, yesterday)
-    : 0;
+  // Count trailing days (starting from yesterday) with no downloads reported.
+  let dataDelayDays = 0;
+  if (hasEstablishedHistory) {
+    while (
+      dataDelayDays < MAX_DATA_DELAY_DAYS &&
+      !downloadsByDay.get(toDayString(addDays(yesterday, -dataDelayDays)))
+    ) {
+      dataDelayDays++;
+    }
+  }
+
+  // Slide every window back so comparisons end on the last day with data.
+  const currentEnd = addDays(yesterday, -dataDelayDays);
+
+  const currentWeekStart = addDays(currentEnd, -DAYS_OFFSET_WEEK);
+  const previousWeekEnd = addDays(currentWeekStart, -1);
+  const previousWeekStart = addDays(previousWeekEnd, -DAYS_OFFSET_WEEK);
+
+  const currentMonthStart = addDays(currentEnd, -DAYS_OFFSET_MONTH);
+  const previousMonthEnd = addDays(currentMonthStart, -1);
+  const previousMonthStart = addDays(previousMonthEnd, -DAYS_OFFSET_MONTH);
+
+  const currentYearStart = addDays(currentEnd, -DAYS_OFFSET_YEAR);
+  const previousYearEnd = addDays(currentYearStart, -1);
+  const previousYearStart = addDays(previousYearEnd, -DAYS_OFFSET_YEAR);
 
   return {
     name: packageName,
-    weeklyCurrent: sumRange(currentWeekStart, yesterday),
+    weeklyCurrent: sumRange(currentWeekStart, currentEnd),
     weeklyPrevious: sumRange(previousWeekStart, previousWeekEnd),
-    monthlyCurrent: sumRange(currentMonthStart, yesterday),
+    monthlyCurrent: sumRange(currentMonthStart, currentEnd),
     monthlyPrevious: sumRange(previousMonthStart, previousMonthEnd),
-    yearlyCurrent: sumRange(currentYearStart, yesterday),
+    yearlyCurrent: sumRange(currentYearStart, currentEnd),
     yearlyPrevious: sumRange(previousYearStart, previousYearEnd),
-    missingDataDays,
+    dataDelayDays,
   };
 }
 

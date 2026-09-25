@@ -36,7 +36,7 @@ export function PackageCard({
 
   const isNegative =
     computed.weekChangePercent !== null && computed.weekChangePercent < 0;
-  const isUnreliable = computed.missingDataDays > 0;
+  const delayDays = computed.dataDelayDays;
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
@@ -62,23 +62,23 @@ export function PackageCard({
           title={packageName}
         >
           {packageName}
-          {isUnreliable && (
-            <span
-              className="ml-1.5 text-amber-400 align-middle"
-              role="img"
-              aria-label="Download data may be unreliable"
-              title={`${computed.missingDataDays} of the last 7 days missing data`}
-            >
-              {'⚠'}
-            </span>
-          )}
         </a>
       </div>
 
       <div>
-        <p className="text-xs font-mono tracking-[0.15em] uppercase mb-2 text-text-tertiary">
-          Weekly downloads
-        </p>
+        <div className="flex items-baseline justify-between gap-2 mb-2">
+          <p className="text-xs font-mono tracking-[0.15em] uppercase text-text-tertiary">
+            Weekly downloads
+          </p>
+          {delayDays > 0 && (
+            <p
+              className="text-xs text-amber-400"
+              title="NPM has not published the most recent days yet, so all periods are shifted back to the last day with data"
+            >
+              Data delayed by {delayDays} {delayDays === 1 ? 'day' : 'days'}
+            </p>
+          )}
+        </div>
         <p
           className={`text-4xl sm:text-5xl font-medium font-numeric ${isNegative ? 'text-negative' : 'text-accent'}`}
         >
