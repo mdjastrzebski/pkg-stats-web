@@ -24,6 +24,12 @@ export interface PackageStats {
    * established download history, where zero-download days are expected.
    */
   dataDelayDays: number;
+  /**
+   * Number of days in the current month window (last 30 days of data) that
+   * reported zero downloads despite an established history and were estimated
+   * from the same weekday in nearby weeks.
+   */
+  estimatedDays: number;
 }
 
 export interface ComputedPackageStats {
@@ -33,6 +39,7 @@ export interface ComputedPackageStats {
   monthChangePercent: number | null;
   yearChangePercent: number | null;
   dataDelayDays: number;
+  estimatedDays: number;
 }
 
 export class FetchError extends Error {

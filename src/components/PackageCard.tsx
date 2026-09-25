@@ -37,6 +37,13 @@ export function PackageCard({
   const isNegative =
     computed.weekChangePercent !== null && computed.weekChangePercent < 0;
   const delayDays = computed.dataDelayDays;
+  const estimatedDays = computed.estimatedDays;
+  const dataNotes = [
+    delayDays > 0 &&
+      `Delayed: ${delayDays} ${delayDays === 1 ? 'day' : 'days'}`,
+    estimatedDays > 0 &&
+      `Estimated: ${estimatedDays} ${estimatedDays === 1 ? 'day' : 'days'}`,
+  ].filter(Boolean);
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
@@ -66,19 +73,9 @@ export function PackageCard({
       </div>
 
       <div>
-        <div className="flex items-baseline justify-between gap-2 mb-2">
-          <p className="text-xs font-mono tracking-[0.15em] uppercase text-text-tertiary">
-            Weekly downloads
-          </p>
-          {delayDays > 0 && (
-            <p
-              className="text-xs text-amber-400"
-              title="NPM has not published the most recent days yet, so all periods are shifted back to the last day with data"
-            >
-              Data delayed by {delayDays} {delayDays === 1 ? 'day' : 'days'}
-            </p>
-          )}
-        </div>
+        <p className="text-xs font-mono tracking-[0.15em] uppercase text-text-tertiary mb-2">
+          Weekly downloads
+        </p>
         <p
           className={`text-4xl sm:text-5xl font-medium font-numeric ${isNegative ? 'text-negative' : 'text-accent'}`}
         >
@@ -106,6 +103,15 @@ export function PackageCard({
           arrow={getArrow(computed.yearChangePercent)}
         />
       </div>
+
+      {dataNotes.length > 0 && (
+        <p
+          className="mt-4 text-xs text-right text-text-tertiary"
+          title="NPM reported zero downloads for some days. Missing recent days shift all periods back to the last day with data; missing days in the last 30 days are estimated from the same weekday in nearby weeks."
+        >
+          {dataNotes.join(' · ')}
+        </p>
+      )}
     </div>
   );
 }

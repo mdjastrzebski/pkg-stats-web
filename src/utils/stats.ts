@@ -137,6 +137,9 @@ export function formatChangePercent(percent: number | null): string {
     formatted = toSignificantDigits(absPercent, 2);
   }
 
+  // Keep 2 significant digits, but never more than 1 decimal place.
+  formatted = (Math.round(parseFloat(formatted) * 10) / 10).toString();
+
   return `${formatted}${suffix}%`;
 }
 
@@ -157,5 +160,6 @@ export function computeStats(stats: PackageStats): ComputedPackageStats {
       stats.yearlyPrevious,
     ),
     dataDelayDays: stats.dataDelayDays,
+    estimatedDays: stats.estimatedDays,
   };
 }

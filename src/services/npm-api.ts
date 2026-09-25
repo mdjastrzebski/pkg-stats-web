@@ -22,6 +22,10 @@ const DAYS_OFFSET_WEEK = DAYS_PER_WEEK - 1;
 const DAYS_OFFSET_MONTH = DAYS_PER_MONTH - 1;
 const DAYS_OFFSET_YEAR = DAYS_PER_YEAR - 1;
 
+// The NPM range API returns at most 18 months per request and silently drops
+// older days, so the full range is fetched in chunks of at most one year.
+const MAX_DAYS_PER_REQUEST = DAYS_PER_YEAR;
+
 // Maximum number of most-recent days the stats windows can slide back when the
 // NPM API has not finalized those days yet (they report zero downloads or no
 // data at all). One extra week is fetched on top of two full years so the
@@ -34,10 +38,16 @@ const MAX_DATA_DELAY_DAYS = 7;
 const BASELINE_HISTORY_DAYS = 28;
 
 // Fraction of baseline days that must report downloads for trailing
-// zero-download days to be treated as a publishing delay. Below this, recent
+// zero-download days to be treated as a publishing delay, and interior ones as
+// gaps to estimate. Below this, recent
 // zero-download days are treated as normal for a new or low-traffic package and
 // `dataDelayDays` stays 0.
 const BASELINE_MIN_ACTIVE_RATIO = 0.75;
+
+// How many weeks before and after a missing day to search for the same weekday
+// with reported downloads when estimating its value. Using the same weekday
+// keeps the weekday/weekend pattern intact.
+const GAP_FILL_MAX_WEEKS = 4;
 
 export interface DateRange {
   start: string;
@@ -54,14 +64,23 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
-function getFullDataRange(): DateRange {
+function getDataRanges(): DateRange[] {
   const end = addDays(new Date(), -1);
   const start = addDays(end, -(DAYS_PER_YEAR * 2 + MAX_DATA_DELAY_DAYS - 1));
 
-  return {
-    start: toDayString(start),
-    end: toDayString(end),
-  };
+  const ranges: DateRange[] = [];
+  for (
+    let chunkStart = start;
+    chunkStart <= end;
+    chunkStart = addDays(chunkStart, MAX_DAYS_PER_REQUEST)
+  ) {
+    const chunkEnd = addDays(chunkStart, MAX_DAYS_PER_REQUEST - 1);
+    ranges.push({
+      start: toDayString(chunkStart),
+      end: toDayString(chunkEnd < end ? chunkEnd : end),
+    });
+  }
+  return ranges;
 }
 
 function calculateStatsFromDailyData(
@@ -75,16 +94,8 @@ function calculateStatsFromDailyData(
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
-
-  function sumRange(start: Date, end: Date): number {
-    const startStr = toDayString(start);
-    const endStr = toDayString(end);
-
-    return dailyData
-      .filter((d) => d.day >= startStr && d.day <= endStr)
-      .reduce((sum, d) => sum + d.downloads, 0);
-  }
+  // Noon keeps toDayString() on the same calendar day in every timezone.
+  yesterday.setHours(12, 0, 0, 0);
 
   function countActiveDays(start: Date, end: Date): number {
     const startStr = toDayString(start);
@@ -114,6 +125,74 @@ function calculateStatsFromDailyData(
 
   // Slide every window back so comparisons end on the last day with data.
   const currentEnd = addDays(yesterday, -dataDelayDays);
+  const currentEndStr = toDayString(currentEnd);
+
+  // For established packages, a zero-download day inside the range is an NPM
+  // data gap rather than a real zero. Estimate it from the nearest same weekday
+  // with data before and after it (up to currentEnd). Days before the package's
+  // first recorded download stay zero.
+  const firstActiveDay = dailyData.find((d) => d.downloads > 0)?.day;
+  const estimatedDays = new Set<string>();
+
+  function findSameWeekdayDownloads(
+    date: Date,
+    direction: 1 | -1,
+  ): number | undefined {
+    for (let week = 1; week <= GAP_FILL_MAX_WEEKS; week++) {
+      const day = toDayString(addDays(date, direction * week * DAYS_PER_WEEK));
+      if (day > currentEndStr) return undefined;
+      const downloads = downloadsByDay.get(day);
+      if (downloads) return downloads;
+    }
+    return undefined;
+  }
+
+  if (hasEstablishedHistory && firstActiveDay) {
+    for (
+      let date = new Date(`${firstActiveDay}T12:00:00`);
+      toDayString(date) <= currentEndStr;
+      date = addDays(date, 1)
+    ) {
+      const day = toDayString(date);
+      if (downloadsByDay.get(day)) continue;
+
+      const neighbors = [
+        findSameWeekdayDownloads(date, -1),
+        findSameWeekdayDownloads(date, 1),
+      ].filter((value) => value !== undefined);
+      if (neighbors.length === 0) continue;
+
+      downloadsByDay.set(
+        day,
+        Math.round(
+          neighbors.reduce((sum, value) => sum + value, 0) / neighbors.length,
+        ),
+      );
+      estimatedDays.add(day);
+    }
+  }
+
+  function sumRange(start: Date, end: Date): number {
+    const startStr = toDayString(start);
+    const endStr = toDayString(end);
+
+    let sum = 0;
+    for (const [day, downloads] of downloadsByDay) {
+      if (day >= startStr && day <= endStr) sum += downloads;
+    }
+    return sum;
+  }
+
+  function countEstimatedDays(start: Date, end: Date): number {
+    const startStr = toDayString(start);
+    const endStr = toDayString(end);
+
+    let count = 0;
+    for (const day of estimatedDays) {
+      if (day >= startStr && day <= endStr) count++;
+    }
+    return count;
+  }
 
   const currentWeekStart = addDays(currentEnd, -DAYS_OFFSET_WEEK);
   const previousWeekEnd = addDays(currentWeekStart, -1);
@@ -136,6 +215,7 @@ function calculateStatsFromDailyData(
     yearlyCurrent: sumRange(currentYearStart, currentEnd),
     yearlyPrevious: sumRange(previousYearStart, previousYearEnd),
     dataDelayDays,
+    estimatedDays: countEstimatedDays(currentMonthStart, currentEnd),
   };
 }
 
@@ -204,18 +284,22 @@ async function fetchDownloadsSafely(
 export async function getPackageStats(
   packageName: string,
 ): Promise<PackageStats | null> {
-  const range = getFullDataRange();
-  const dailyData = await fetchDownloadsSafely(
-    packageName,
-    range.start,
-    range.end,
+  const chunks = await Promise.all(
+    getDataRanges().map((range) =>
+      fetchDownloadsSafely(packageName, range.start, range.end),
+    ),
   );
 
-  if (!dailyData?.downloads || dailyData.downloads.length === 0) {
+  if (chunks.some((chunk) => !chunk?.downloads)) {
     return null;
   }
 
-  return calculateStatsFromDailyData(packageName, dailyData.downloads);
+  const dailyData = chunks.flatMap((chunk) => chunk?.downloads ?? []);
+  if (dailyData.length === 0) {
+    return null;
+  }
+
+  return calculateStatsFromDailyData(packageName, dailyData);
 }
 
 export interface PackageSearchResult {
