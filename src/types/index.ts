@@ -17,13 +17,19 @@ export interface PackageStats {
   yearlyCurrent: number;
   yearlyPrevious: number;
   /**
-   * Number of days within the recent window (last 7 days) that report zero
-   * downloads or have no data at all, indicating the NPM API has not finalized
-   * those days yet. Always 0 for packages without an established download
-   * history, where recent zero-download days are expected rather than a signal.
-   * Treat any value > 0 as "stats may be unreliable".
+   * Number of most-recent days (up to 7) that report zero downloads or have no
+   * data at all, indicating the NPM API has not finalized those days yet. All
+   * week/month/year windows are shifted back by this many days so comparisons
+   * end on the last day with data. Always 0 for packages without an
+   * established download history, where zero-download days are expected.
    */
-  missingDataDays: number;
+  dataDelayDays: number;
+  /**
+   * Number of days in the current month window (last 30 days of data) that
+   * reported zero downloads despite an established history and were estimated
+   * from the same weekday in nearby weeks.
+   */
+  estimatedDays: number;
 }
 
 export interface ComputedPackageStats {
@@ -32,7 +38,8 @@ export interface ComputedPackageStats {
   weekChangePercent: number | null;
   monthChangePercent: number | null;
   yearChangePercent: number | null;
-  missingDataDays: number;
+  dataDelayDays: number;
+  estimatedDays: number;
 }
 
 export class FetchError extends Error {

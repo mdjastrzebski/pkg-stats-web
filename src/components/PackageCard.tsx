@@ -36,7 +36,14 @@ export function PackageCard({
 
   const isNegative =
     computed.weekChangePercent !== null && computed.weekChangePercent < 0;
-  const isUnreliable = computed.missingDataDays > 0;
+  const delayDays = computed.dataDelayDays;
+  const estimatedDays = computed.estimatedDays;
+  const dataNotes = [
+    delayDays > 0 &&
+      `Delayed: ${delayDays} ${delayDays === 1 ? 'day' : 'days'}`,
+    estimatedDays > 0 &&
+      `Estimated: ${estimatedDays} ${estimatedDays === 1 ? 'day' : 'days'}`,
+  ].filter(Boolean);
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
@@ -62,16 +69,6 @@ export function PackageCard({
           title={packageName}
         >
           {packageName}
-          {isUnreliable && (
-            <span
-              className="ml-1.5 text-amber-400 align-middle"
-              role="img"
-              aria-label="Download data may be unreliable"
-              title={`${computed.missingDataDays} of the last 7 days missing data`}
-            >
-              {'⚠'}
-            </span>
-          )}
         </a>
       </div>
 
@@ -106,6 +103,20 @@ export function PackageCard({
           arrow={getArrow(computed.yearChangePercent)}
         />
       </div>
+
+      {dataNotes.length > 0 && (
+        <details className="mt-4 text-xs text-right text-text-tertiary">
+          <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            <span className="sr-only">Download data is incomplete: </span>
+            {dataNotes.join(' · ')}
+          </summary>
+          <p className="mt-2 text-left">
+            NPM reported zero downloads for some days. Missing recent days shift
+            all periods back to the last day with data; missing days in the last
+            30 days are estimated from the same weekday in nearby weeks.
+          </p>
+        </details>
+      )}
     </div>
   );
 }
