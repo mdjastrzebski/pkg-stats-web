@@ -30,12 +30,15 @@ export interface PackageStats {
    * from the same weekday in nearby weeks.
    */
   estimatedDays: number;
-  /** First day with reported downloads in the fetched range, if any. */
-  firstDownloadDay: string | null;
   /**
-   * Whether the previous week/month/year window started well before the
-   * package's first recorded download (e.g. the package did not exist yet), so
-   * the matching change is based on partial data and likely inflated.
+   * Start of the package's latest active stretch, ignoring earlier stray
+   * downloads of a reused or abandoned name. Null when there is no data.
+   */
+  activeSinceDay: string | null;
+  /**
+   * Whether the previous week/month/year window started well before
+   * `activeSinceDay` (e.g. the package did not exist yet), so the matching
+   * change is based on partial data and likely inflated.
    */
   weeklyPreviousPartial: boolean;
   monthlyPreviousPartial: boolean;
@@ -50,7 +53,7 @@ export interface ComputedPackageStats {
   yearChangePercent: number | null;
   dataDelayDays: number;
   estimatedDays: number;
-  firstDownloadDay: string | null;
+  activeSinceDay: string | null;
   weekPartial: boolean;
   monthPartial: boolean;
   yearPartial: boolean;

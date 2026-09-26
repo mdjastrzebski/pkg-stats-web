@@ -44,8 +44,8 @@ export function PackageCard({
     estimatedDays > 0 &&
       `Estimated: ${estimatedDays} ${estimatedDays === 1 ? 'day' : 'days'}`,
   ].filter(Boolean);
-  const firstDownloadLabel = computed.firstDownloadDay
-    ? new Date(`${computed.firstDownloadDay}T00:00:00Z`).toLocaleDateString(
+  const activeSinceLabel = computed.activeSinceDay
+    ? new Date(`${computed.activeSinceDay}T00:00:00Z`).toLocaleDateString(
         'en-US',
         { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' },
       )
@@ -58,7 +58,7 @@ export function PackageCard({
     percent: number | null,
   ): string | undefined => {
     if (!partial || percent === null) return undefined;
-    return `Previous ${period} has partial data: first downloads on ${firstDownloadLabel}, so the change may look inflated.`;
+    return `Previous ${period} has partial data: the package only became active around ${activeSinceLabel}, so the change may look inflated.`;
   };
   const weekPartialHint = getPartialHint(
     'week',
@@ -143,8 +143,8 @@ export function PackageCard({
 
       {hasPartialHint && (
         <p className="mt-4 text-xs text-text-tertiary">
-          * Compared with a period before the first downloads on{' '}
-          {firstDownloadLabel}.
+          * Compared with a period before the package became active around{' '}
+          {activeSinceLabel}.
         </p>
       )}
 
