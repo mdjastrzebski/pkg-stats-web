@@ -55,6 +55,14 @@ const GAP_FILL_MAX_WEEKS = 4;
 // below it, the zero is kept as plausibly real.
 const GAP_FILL_MIN_ESTIMATE = 10;
 
+// Minimum share of a previous period that must come after the package's first
+// recorded download for the comparison to count as complete. Below it, the
+// package did not exist (or had no downloads yet) for a meaningful part of
+// that period and the change is flagged as based on partial data. The slack
+// also absorbs a short NPM gap right at the start of the fetched range, where
+// a zero-download run cannot be told apart from a package not existing yet.
+const PREVIOUS_PERIOD_MIN_COVERAGE = 0.9;
+
 export interface DateRange {
   start: string;
   end: string;
@@ -218,6 +226,23 @@ function calculateStatsFromDailyData(
     return count;
   }
 
+  // Previous periods that started before the package's first recorded download
+  // only partly reflect its usage, which inflates growth. Data gaps after the
+  // first download are handled by the estimation above and do not count here.
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  function isPartialPeriod(start: Date, end: Date): boolean {
+    if (!firstActiveDay) return false;
+    const coveredStart = new Date(`${firstActiveDay}T00:00:00Z`);
+    if (coveredStart <= start) return false;
+    const periodDays =
+      Math.round((end.getTime() - start.getTime()) / MS_PER_DAY) + 1;
+    const coveredDays = Math.max(
+      0,
+      Math.round((end.getTime() - coveredStart.getTime()) / MS_PER_DAY) + 1,
+    );
+    return coveredDays < periodDays * PREVIOUS_PERIOD_MIN_COVERAGE;
+  }
+
   const currentWeekStart = addDays(currentEnd, -DAYS_OFFSET_WEEK);
   const previousWeekEnd = addDays(currentWeekStart, -1);
   const previousWeekStart = addDays(previousWeekEnd, -DAYS_OFFSET_WEEK);
@@ -240,6 +265,13 @@ function calculateStatsFromDailyData(
     yearlyPrevious: sumRange(previousYearStart, previousYearEnd),
     dataDelayDays,
     estimatedDays: countEstimatedDays(currentMonthStart, currentEnd),
+    firstDownloadDay: firstActiveDay ?? null,
+    weeklyPreviousPartial: isPartialPeriod(previousWeekStart, previousWeekEnd),
+    monthlyPreviousPartial: isPartialPeriod(
+      previousMonthStart,
+      previousMonthEnd,
+    ),
+    yearlyPreviousPartial: isPartialPeriod(previousYearStart, previousYearEnd),
   };
 }
 

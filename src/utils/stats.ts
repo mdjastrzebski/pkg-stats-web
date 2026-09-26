@@ -163,5 +163,9 @@ export function computeStats(stats: PackageStats): ComputedPackageStats {
     ),
     dataDelayDays: stats.dataDelayDays,
     estimatedDays: stats.estimatedDays,
+    firstDownloadDay: stats.firstDownloadDay,
+    weekPartial: stats.weeklyPreviousPartial,
+    monthPartial: stats.monthlyPreviousPartial,
+    yearPartial: stats.yearlyPreviousPartial,
   };
 }

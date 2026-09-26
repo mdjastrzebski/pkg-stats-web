@@ -30,6 +30,16 @@ export interface PackageStats {
    * from the same weekday in nearby weeks.
    */
   estimatedDays: number;
+  /** First day with reported downloads in the fetched range, if any. */
+  firstDownloadDay: string | null;
+  /**
+   * Whether the previous week/month/year window started well before the
+   * package's first recorded download (e.g. the package did not exist yet), so
+   * the matching change is based on partial data and likely inflated.
+   */
+  weeklyPreviousPartial: boolean;
+  monthlyPreviousPartial: boolean;
+  yearlyPreviousPartial: boolean;
 }
 
 export interface ComputedPackageStats {
@@ -40,6 +50,10 @@ export interface ComputedPackageStats {
   yearChangePercent: number | null;
   dataDelayDays: number;
   estimatedDays: number;
+  firstDownloadDay: string | null;
+  weekPartial: boolean;
+  monthPartial: boolean;
+  yearPartial: boolean;
 }
 
 export class FetchError extends Error {

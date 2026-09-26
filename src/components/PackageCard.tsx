@@ -44,6 +44,40 @@ export function PackageCard({
     estimatedDays > 0 &&
       `Estimated: ${estimatedDays} ${estimatedDays === 1 ? 'day' : 'days'}`,
   ].filter(Boolean);
+  const firstDownloadLabel = computed.firstDownloadDay
+    ? new Date(`${computed.firstDownloadDay}T00:00:00Z`).toLocaleDateString(
+        'en-US',
+        { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' },
+      )
+    : null;
+  // Only flag changes that are actually shown; a previous period with no
+  // downloads at all already renders as "-".
+  const getPartialHint = (
+    period: string,
+    partial: boolean,
+    percent: number | null,
+  ): string | undefined => {
+    if (!partial || percent === null) return undefined;
+    return `Previous ${period} has partial data: first downloads on ${firstDownloadLabel}, so the change may look inflated.`;
+  };
+  const weekPartialHint = getPartialHint(
+    'week',
+    computed.weekPartial,
+    computed.weekChangePercent,
+  );
+  const monthPartialHint = getPartialHint(
+    'month',
+    computed.monthPartial,
+    computed.monthChangePercent,
+  );
+  const yearPartialHint = getPartialHint(
+    'year',
+    computed.yearPartial,
+    computed.yearChangePercent,
+  );
+  const hasPartialHint = Boolean(
+    weekPartialHint || monthPartialHint || yearPartialHint,
+  );
   const npmUrl = `https://www.npmjs.com/package/${packageName}?activeTab=versions`;
 
   return (
@@ -89,20 +123,30 @@ export function PackageCard({
           value={computed.weekChangePercent}
           colorClass={getChangeClass(computed.weekChangePercent)}
           arrow={getArrow(computed.weekChangePercent)}
+          partialHint={weekPartialHint}
         />
         <StatItem
           label="Month"
           value={computed.monthChangePercent}
           colorClass={getChangeClass(computed.monthChangePercent)}
           arrow={getArrow(computed.monthChangePercent)}
+          partialHint={monthPartialHint}
         />
         <StatItem
           label="Year"
           value={computed.yearChangePercent}
           colorClass={getChangeClass(computed.yearChangePercent)}
           arrow={getArrow(computed.yearChangePercent)}
+          partialHint={yearPartialHint}
         />
       </div>
+
+      {hasPartialHint && (
+        <p className="mt-4 text-xs text-text-tertiary">
+          * Compared with a period before the first downloads on{' '}
+          {firstDownloadLabel}.
+        </p>
+      )}
 
       {dataNotes.length > 0 && (
         <details className="mt-4 text-xs text-right text-text-tertiary">
@@ -126,11 +170,13 @@ function StatItem({
   value,
   colorClass,
   arrow,
+  partialHint,
 }: {
   label: string;
   value: number | null;
   colorClass: string;
   arrow: string;
+  partialHint?: string;
 }) {
   return (
     <div className="flex-1">
@@ -140,6 +186,14 @@ function StatItem({
       <p className={`text-base font-medium font-numeric ${colorClass}`}>
         {arrow && <span className="mr-0.5 text-sm">{arrow}</span>}
         {formatChangePercent(value)}
+        {partialHint && (
+          <span
+            title={partialHint}
+            className="ml-0.5 cursor-help text-text-tertiary"
+          >
+            *<span className="sr-only"> {partialHint}</span>
+          </span>
+        )}
       </p>
     </div>
   );
