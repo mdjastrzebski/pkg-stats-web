@@ -55,6 +55,25 @@ const GAP_FILL_MAX_WEEKS = 4;
 // below it, the zero is kept as plausibly real.
 const GAP_FILL_MIN_ESTIMATE = 10;
 
+// Minimum share of a previous period that must come after the package became
+// active for the comparison to count as complete. Below it, the package did
+// not exist (or was dormant) for a meaningful part of that period and the
+// change is flagged as based on partial data. The slack also absorbs a short
+// NPM gap right at the start of the fetched range, where a zero-download run
+// cannot be told apart from a package not existing yet.
+const PREVIOUS_PERIOD_MIN_COVERAGE = 0.9;
+
+// A week counts as active when its downloads reach this share of the recent
+// weekly average (or the absolute floor below). Reused or long-abandoned names
+// keep getting a trickle of stray downloads from mirrors and bots; this keeps
+// that trickle from passing as real usage of the current package.
+const ACTIVE_WEEK_MIN_RATIO = 0.01;
+const ACTIVE_WEEK_MIN_DOWNLOADS = 10;
+
+// Consecutive inactive weeks that mark the package as dormant before them.
+// Shorter NPM gaps are already estimated and do not break an active stretch.
+const DORMANT_MIN_WEEKS = 4;
+
 export interface DateRange {
   start: string;
   end: string;
@@ -218,6 +237,50 @@ function calculateStatsFromDailyData(
     return count;
   }
 
+  // Find when the package became active: walk back week by week from the
+  // latest data and stop at the first dormant stretch. Stray downloads of a
+  // reused or abandoned name before that are ignored.
+  const recentWeeklyAverage =
+    sumRange(addDays(currentEnd, -(BASELINE_HISTORY_DAYS - 1)), currentEnd) /
+    (BASELINE_HISTORY_DAYS / DAYS_PER_WEEK);
+  const activeWeekThreshold = Math.max(
+    ACTIVE_WEEK_MIN_DOWNLOADS,
+    recentWeeklyAverage * ACTIVE_WEEK_MIN_RATIO,
+  );
+  let activeSince: Date | undefined;
+  if (firstActiveDay) {
+    const firstActiveDate = new Date(`${firstActiveDay}T00:00:00Z`);
+    let inactiveWeeks = 0;
+    for (
+      let weekEnd = currentEnd;
+      weekEnd >= firstActiveDate && inactiveWeeks < DORMANT_MIN_WEEKS;
+      weekEnd = addDays(weekEnd, -DAYS_PER_WEEK)
+    ) {
+      const weekStart = addDays(weekEnd, -DAYS_OFFSET_WEEK);
+      if (sumRange(weekStart, weekEnd) >= activeWeekThreshold) {
+        activeSince = weekStart > firstActiveDate ? weekStart : firstActiveDate;
+        inactiveWeeks = 0;
+      } else {
+        inactiveWeeks++;
+      }
+    }
+  }
+
+  // Previous periods that started before the package became active only
+  // partly reflect its usage, which inflates growth. Data gaps after that are
+  // handled by the estimation above and do not count here.
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  function isPartialPeriod(start: Date, end: Date): boolean {
+    if (!activeSince || activeSince <= start) return false;
+    const periodDays =
+      Math.round((end.getTime() - start.getTime()) / MS_PER_DAY) + 1;
+    const coveredDays = Math.max(
+      0,
+      Math.round((end.getTime() - activeSince.getTime()) / MS_PER_DAY) + 1,
+    );
+    return coveredDays < periodDays * PREVIOUS_PERIOD_MIN_COVERAGE;
+  }
+
   const currentWeekStart = addDays(currentEnd, -DAYS_OFFSET_WEEK);
   const previousWeekEnd = addDays(currentWeekStart, -1);
   const previousWeekStart = addDays(previousWeekEnd, -DAYS_OFFSET_WEEK);
@@ -240,6 +303,13 @@ function calculateStatsFromDailyData(
     yearlyPrevious: sumRange(previousYearStart, previousYearEnd),
     dataDelayDays,
     estimatedDays: countEstimatedDays(currentMonthStart, currentEnd),
+    activeSinceDay: activeSince ? toDayString(activeSince) : null,
+    weeklyPreviousPartial: isPartialPeriod(previousWeekStart, previousWeekEnd),
+    monthlyPreviousPartial: isPartialPeriod(
+      previousMonthStart,
+      previousMonthEnd,
+    ),
+    yearlyPreviousPartial: isPartialPeriod(previousYearStart, previousYearEnd),
   };
 }
 
